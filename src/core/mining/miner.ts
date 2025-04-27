@@ -4,10 +4,8 @@ import {
   createCoinbaseTransaction, 
   createRedistributionTransaction 
 } from '../blockchain/transaction';
-import { 
-  createBlockTemplate, 
-  calculateBlockHeaderHash 
-} from '../blockchain/block';
+import { createBlockTemplate } from '../blockchain/block';
+import { calculateBlockHeaderHash } from '../validation/blockValidator';
 import { isHashBelowCeiling } from '../../utils/hashUtils';
 
 /**

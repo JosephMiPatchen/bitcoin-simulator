@@ -1,7 +1,8 @@
-import { Block, Transaction, UTXOSet } from '../../types/types';
-import { validateBlock, createGenesisBlock, calculateBlockHeaderHash } from './block';
+import { Block, UTXOSet } from '../../types/types';
+import { createGenesisBlock } from './block';
 import { rebuildUTXOSet, updateUTXOSet } from './utxo';
-import { SimulatorConfig } from '../../config/config';
+import { validateBlock, calculateBlockHeaderHash } from '../validation/blockValidator';
+import { validateChain } from '../validation/chainValidator';
 
 /**
  * Blockchain class to manage the chain of blocks and UTXO set
@@ -116,30 +117,7 @@ export class Blockchain {
    * Validates a chain of blocks
    */
   private isValidChain(chain: Block[]): boolean {
-    // Check if the genesis block is valid
-    if (JSON.stringify(chain[0]) !== JSON.stringify(createGenesisBlock(this.nodeId))) {
-      return false;
-    }
-    
-    // Validate each block in the chain
-    let tempUtxoSet: UTXOSet = {};
-    
-    for (let i = 0; i < chain.length; i++) {
-      const block = chain[i];
-      const previousBlock = i > 0 ? chain[i - 1] : null;
-      
-      // Validate the block
-      if (!validateBlock(block, previousBlock, tempUtxoSet)) {
-        return false;
-      }
-      
-      // Update the temporary UTXO set
-      for (const transaction of block.transactions) {
-        tempUtxoSet = updateUTXOSet(tempUtxoSet, transaction);
-      }
-    }
-    
-    return true;
+    return validateChain(chain, createGenesisBlock(this.nodeId));
   }
   
   /**
