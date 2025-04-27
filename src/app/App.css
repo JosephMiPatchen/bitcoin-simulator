@@ -1,0 +1,63 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 15px;
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.mining-control {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.mining-control:hover {
+  background-color: #e88d18;
+}
+
+.nodes-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.node-placeholder {
+  background-color: var(--panel-background);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.node-placeholder h2 {
+  color: var(--primary-color);
+  margin-top: 0;
+}
+
+.blockchain-placeholder {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
