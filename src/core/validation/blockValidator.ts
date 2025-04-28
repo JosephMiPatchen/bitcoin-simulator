@@ -56,29 +56,22 @@ export const validateBlock = (
   }
   
   // 5. Validate previous header hash matches the hash of the previous block
-  if (previousBlock) {
-    if (header.previousHeaderHash !== previousBlock.hash) {
-      console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousBlock.hash}`);
-      return false;
-    }
-    
-    // 6. Validate block height is one more than previous block
-    if (header.height !== previousBlock.header.height + 1) {
-      console.error(`Block height mismatch: ${header.height} !== ${previousBlock.header.height + 1}`);
-      return false;
-    }
-  } else {
-    // For genesis block, previous header hash should match GENESIS_BLOCK_HASH
-    if (header.previousHeaderHash !== SimulatorConfig.GENESIS_BLOCK_HASH) {
-      console.error(`Genesis block previous header hash mismatch: ${header.previousHeaderHash} !== ${SimulatorConfig.GENESIS_BLOCK_HASH}`);
-      return false;
-    }
-    
-    // Genesis block should have height 0
-    if (header.height !== 0) {
-      console.error(`Genesis block height mismatch: ${header.height} !== 0`);
-      return false;
-    }
+  // Note: This function assumes it's not validating a genesis block
+  // Genesis blocks are trusted by construction and added directly to the blockchain
+  if (!previousBlock) {
+    console.error('Cannot validate a block without a previous block reference');
+    return false;
+  }
+  
+  if (header.previousHeaderHash !== previousBlock.hash) {
+    console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousBlock.hash}`);
+    return false;
+  }
+  
+  // 6. Validate block height is one more than previous block
+  if (header.height !== previousBlock.header.height + 1) {
+    console.error(`Block height mismatch: ${header.height} !== ${previousBlock.header.height + 1}`);
+    return false;
   }
   
   // 7. Validate block timestamp is reasonable

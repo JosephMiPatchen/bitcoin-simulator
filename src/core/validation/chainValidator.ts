@@ -29,8 +29,9 @@ export const validateChain = (
     const block = chain[i];
     const previousBlock = i > 0 ? chain[i - 1] : null;
     
-    // Validate the block
-    if (!validateBlock(block, previousBlock, tempUtxoSet)) {
+    // Skip validateBlock for genesis block (i=0) since we already verified it matches the expected genesis block
+    // For non-genesis blocks, validate using validateBlock
+    if (i > 0 && !validateBlock(block, previousBlock, tempUtxoSet)) {
       console.error(`Block at height ${block.header.height} is invalid`);
       return false;
     }

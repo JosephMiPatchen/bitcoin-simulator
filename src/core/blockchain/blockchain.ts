@@ -59,8 +59,15 @@ export class Blockchain {
   /**
    * Adds a new block to the chain if valid
    * Returns true if the block was added, false otherwise
+   * Note: This method should not be used for genesis blocks (height 0)
    */
   addBlock(block: Block): boolean {
+    // Reject genesis blocks (height 0)
+    if (block.header.height === 0) {
+      console.error('Genesis blocks should be added directly, not through addBlock');
+      return false;
+    }
+    
     // Ensure block has a hash
     if (!block.hash) {
       block.hash = calculateBlockHeaderHash(block.header);
