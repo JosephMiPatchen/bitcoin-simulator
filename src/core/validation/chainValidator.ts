@@ -1,6 +1,6 @@
 import { Block, UTXOSet } from '../../types/types';
 import { validateBlock } from './blockValidator';
-import { rebuildUTXOSet } from '../blockchain/utxo';
+import { rebuildUTXOSetFromTransactions } from '../blockchain/utxo';
 
 /**
  * Validates a chain of blocks
@@ -43,7 +43,7 @@ export const validateChain = (
     
     // Update the temporary UTXO set
     const allTransactions = chain.slice(0, i + 1).flatMap(b => b.transactions);
-    tempUtxoSet = rebuildUTXOSet(allTransactions);
+    tempUtxoSet = rebuildUTXOSetFromTransactions(allTransactions);
   }
   
   return true;

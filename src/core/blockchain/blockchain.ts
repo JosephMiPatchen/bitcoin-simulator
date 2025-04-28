@@ -1,6 +1,6 @@
 import { Block, UTXOSet } from '../../types/types';
 import { createGenesisBlock } from './block';
-import { rebuildUTXOSet, updateUTXOSet } from './utxo';
+import { rebuildUTXOSetFromBlocks, updateUTXOSet } from './utxo';
 import { validateBlock, calculateBlockHeaderHash } from '../validation/blockValidator';
 import { validateChain } from '../validation/chainValidator';
 
@@ -24,9 +24,8 @@ export class Blockchain {
     const genesisBlock = createGenesisBlock(this.nodeId);
     this.blocks.push(genesisBlock);
     
-    // Initialize UTXO set with genesis block transactions
-    const allTransactions = this.blocks.flatMap(block => block.transactions);
-    this.utxoSet = rebuildUTXOSet(allTransactions);
+    // Rebuild the UTXO set from all blocks
+    this.utxoSet = rebuildUTXOSetFromBlocks(this.blocks);
   }
   
   /**
@@ -107,8 +106,7 @@ export class Blockchain {
     this.blocks = [...newBlocks];
     
     // Rebuild the UTXO set
-    const allTransactions = this.blocks.flatMap(block => block.transactions);
-    this.utxoSet = rebuildUTXOSet(allTransactions);
+    this.utxoSet = rebuildUTXOSetFromBlocks(this.blocks);
     
     return true;
   }

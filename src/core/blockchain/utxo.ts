@@ -1,4 +1,4 @@
-import { Transaction, TransactionOutput, UTXOSet } from '../../types/types';
+import { Block, Transaction, TransactionOutput, UTXOSet } from '../../types/types';
 
 /**
  * Updates the UTXO set with a new transaction
@@ -46,10 +46,20 @@ export const updateUTXOSet = (
 };
 
 /**
- * Rebuilds the UTXO set from a blockchain
+ * Rebuilds the UTXO set from blocks
  * This is used when switching to a new chain
  */
-export const rebuildUTXOSet = (transactions: Transaction[]): UTXOSet => {
+export const rebuildUTXOSetFromBlocks = (blocks: Block[]): UTXOSet => {
+  // Extract all transactions from blocks
+  const transactions = blocks.flatMap(block => block.transactions);
+  return rebuildUTXOSetFromTransactions(transactions);
+};
+
+/**
+ * Rebuilds the UTXO set from transactions
+ * This is used when switching to a new chain
+ */
+export const rebuildUTXOSetFromTransactions = (transactions: Transaction[]): UTXOSet => {
   const utxoSet: UTXOSet = {};
   
   // Process transactions in order
@@ -73,6 +83,15 @@ export const rebuildUTXOSet = (transactions: Transaction[]): UTXOSet => {
   }
   
   return utxoSet;
+};
+
+/**
+ * Rebuilds the UTXO set from a blockchain
+ * This is used when switching to a new chain
+ * @deprecated Use rebuildUTXOSetFromBlocks instead
+ */
+export const rebuildUTXOSet = (transactions: Transaction[]): UTXOSet => {
+  return rebuildUTXOSetFromTransactions(transactions);
 };
 
 /**
