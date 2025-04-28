@@ -35,6 +35,12 @@ export const validateChain = (
       return false;
     }
     
+    // Check for chronological timestamps
+    if (previousBlock && block.header.timestamp < previousBlock.header.timestamp) {
+      console.error(`Block timestamp is not chronological: ${block.header.timestamp} < ${previousBlock.header.timestamp}`);
+      return false;
+    }
+    
     // Update the temporary UTXO set
     const allTransactions = chain.slice(0, i + 1).flatMap(b => b.transactions);
     tempUtxoSet = rebuildUTXOSet(allTransactions);

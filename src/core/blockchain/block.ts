@@ -1,6 +1,6 @@
 import { Block, BlockHeader, Transaction } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
-import { calculateTransactionHash } from '../validation/blockValidator';
+import { calculateTransactionHash, calculateBlockHeaderHash } from '../validation/blockValidator';
 
 
 
@@ -23,9 +23,14 @@ export const createBlockTemplate = (
     height
   };
   
+  // Calculate an initial hash for the block header
+  // Note: This is not a mined hash, just a placeholder that will be replaced during mining
+  const initialHash = calculateBlockHeaderHash(header);
+  
   return {
     header,
-    transactions
+    transactions,
+    hash: initialHash
   };
 };
 

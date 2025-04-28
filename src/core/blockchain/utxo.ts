@@ -10,6 +10,22 @@ export const updateUTXOSet = (
 ): UTXOSet => {
   const newUtxoSet = { ...utxoSet };
   
+  // Validate that all non-coinbase inputs exist in the UTXO set
+  const isCoinbase = transaction.inputs.length === 1 && 
+                    transaction.inputs[0].sourceOutputId === 'COINBASE-REWARD';
+  
+  if (!isCoinbase) {
+    // Check if all inputs exist in the UTXO set
+    const allInputsExist = transaction.inputs.every(input => 
+      input.sourceOutputId === 'COINBASE-REWARD' || utxoSet[input.sourceOutputId] !== undefined
+    );
+    
+    // If any input doesn't exist, return the original UTXO set unchanged
+    if (!allInputsExist) {
+      return utxoSet;
+    }
+  }
+  
   // Remove spent outputs from UTXO set
   for (const input of transaction.inputs) {
     // Skip coinbase inputs as they don't reference existing UTXOs
