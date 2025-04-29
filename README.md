@@ -407,3 +407,34 @@ Each node's panel will display:
 4. No security/cryptographic validation is included in this simplified model, but with the algorithm for our block transactions, each node only spends its own coinbase transaction.
 5. Node IDs are used in place of Bitcoin addresses for simplicity.
 6. Keep the implementation simple yet modular so the project can scale in complexity.
+
+## Unique Genesis Block Design
+
+This simulator implements a unique approach to genesis blocks that differs from the real Bitcoin network but serves as an excellent teaching tool for understanding Nakamoto consensus:
+
+### Each Node Creates Its Own Genesis Block
+
+In the real Bitcoin network, there is a single, hardcoded genesis block that all nodes agree on from the start. However, in this simulator:
+
+1. **Node-specific Genesis Blocks**: Each node creates its own genesis block based on its `nodeId` through the `createGenesisBlock` function
+2. **Self-Rewarding**: Each node's genesis block contains a coinbase transaction that rewards the node itself
+3. **Direct Addition**: Genesis blocks bypass normal validation and are added directly to a node's blockchain
+
+### Why This Design Is Pedagogically Valuable
+
+This design choice creates an initial "forked" state across the network, which demonstrates several key aspects of Nakamoto consensus:
+
+1. **Consensus Resolution**: The network starts in a divergent state (different genesis blocks) and must converge through the consensus mechanism
+2. **Longest Chain Rule**: When a node mines a block on top of its genesis block, it creates a longer chain (height 1) that other nodes will eventually adopt over their own genesis blocks (height 0)
+3. **Fork Resolution**: The simulator naturally demonstrates how the network resolves forks without requiring artificial creation of conflicting blocks
+
+### Implementation Details
+
+To support this design:
+
+1. The `validateBlock` function explicitly rejects genesis blocks (blocks without a previous block reference)
+2. The `addBlock` method in the Blockchain class rejects blocks with height 0
+3. Genesis blocks are added directly to the blockchain via `push` in the `initializeChain` method
+4. The chain validator skips validation for genesis blocks but still verifies they match the expected structure
+
+This approach provides a clear demonstration of how Nakamoto consensus can resolve inconsistencies and converge on a single chain, even when starting from different initial states - a powerful illustration of the robustness of Bitcoin's consensus mechanism.
