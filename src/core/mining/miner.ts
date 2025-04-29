@@ -78,6 +78,10 @@ export class Miner {
     // Create a block template
     const block = createBlockTemplate(previousBlock, transactions);
     
+    // Set an initial random nonce (Bitcoin uses a 32-bit nonce)
+    // 0xFFFFFFFF = 4,294,967,295 (2^32 - 1)
+    block.header.nonce = Math.floor(Math.random() * 0xFFFFFFFF);
+    
     // Start the mining process
     this.mineBlock(block, previousBlock.hash!);
   }
@@ -115,8 +119,10 @@ export class Miner {
           break;
         }
         
-        // Try the next nonce
-        block.header.nonce++;
+        // Try a random nonce - this better represents the true nature of Bitcoin mining
+        // where miners are essentially playing a lottery with random guesses
+        // Bitcoin uses a 32-bit nonce (0 to 0xFFFFFFFF or 2^32 - 1)
+        block.header.nonce = Math.floor(Math.random() * 0xFFFFFFFF);
       }
       
       // If we didn't find a valid block, continue mining
