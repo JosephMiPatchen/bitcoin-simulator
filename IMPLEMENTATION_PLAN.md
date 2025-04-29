@@ -23,11 +23,11 @@ Based on the requirements document, this implementation plan outlines a structur
    export const SimulatorConfig = {
      // Mining parameters
      BLOCK_REWARD: 4,           // BTC rewarded to miners
-     CEILING: "0x10000000000000000000000000000000000000000000000000000000000000000",  // Target difficulty
+     CEILING: "0x01000000000000000000000000000000000000000000000000000000000000000",  // Target difficulty
      // Ceiling explanation: 
      // - SHA-256 produces a 256-bit (64 hex character) hash
      // - This ceiling requires the first hex digit to be 0
-     // - Roughly 1/16 of all hashes will be valid
+     // - Roughly 1/256 of all hashes will be valid
      // - This should provide reasonable mining difficulty for web workers
      
      // Network parameters
