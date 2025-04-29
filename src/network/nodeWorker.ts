@@ -16,7 +16,7 @@ import {
  */
 export class NodeWorker {
   private node: Node;
-  private onMessageCallback?: (message: Message) => void;
+  private onOutgoingMessageCallback?: (message: Message) => void;
   
   constructor(nodeId: string) {
     // Create the node instance
@@ -28,16 +28,17 @@ export class NodeWorker {
   }
   
   /**
-   * Sets the callback for when a message needs to be sent
+   * Sets the callback for when this node needs to send a message to other nodes
+   * This is called by the NetworkManager to establish the outgoing message channel
    */
-  setOnMessage(callback: (message: Message) => void): void {
-    this.onMessageCallback = callback;
+  setOnOutgoingMessage(callback: (message: Message) => void): void {
+    this.onOutgoingMessageCallback = callback;
   }
   
   /**
-   * Handles incoming messages from other nodes
+   * Receives and processes incoming messages from other nodes via the network
    */
-  handleMessage(message: Message): void {
+  receiveIncomingMessage(message: Message): void {
     switch (message.type) {
       case MessageType.BLOCK_ANNOUNCEMENT:
         this.handleBlockAnnouncement(message as BlockAnnouncementMessage);
@@ -89,9 +90,10 @@ export class NodeWorker {
   
   /**
    * Handles a block broadcast event from the node
+   * Creates a network message and sends it to peers via the network layer
    */
   private handleBlockBroadcast(block: Block): void {
-    if (!this.onMessageCallback) return;
+    if (!this.onOutgoingMessageCallback) return;
     
     // Create a block announcement message
     const message: BlockAnnouncementMessage = {
@@ -100,8 +102,8 @@ export class NodeWorker {
       block
     };
     
-    // Send the message
-    this.onMessageCallback(message);
+    // Send the message to the network for routing
+    this.onOutgoingMessageCallback(message);
   }
   
   /**
@@ -122,9 +124,10 @@ export class NodeWorker {
   
   /**
    * Handles a chain request message from another node
+   * Responds with this node's blockchain
    */
   private handleChainRequest(message: ChainRequestMessage): void {
-    if (!this.onMessageCallback) return;
+    if (!this.onOutgoingMessageCallback) return;
     
     // Get all blocks in the chain
     const blocks = this.node.getBlocks();
@@ -137,8 +140,8 @@ export class NodeWorker {
       blocks
     };
     
-    // Send the response
-    this.onMessageCallback(response);
+    // Send the response to the network for routing
+    this.onOutgoingMessageCallback(response);
   }
   
   /**
@@ -151,9 +154,10 @@ export class NodeWorker {
   
   /**
    * Handles a height request message from another node
+   * Responds with this node's current blockchain height
    */
   private handleHeightRequest(message: HeightRequestMessage): void {
-    if (!this.onMessageCallback) return;
+    if (!this.onOutgoingMessageCallback) return;
     
     // Get the current blockchain height
     const height = this.node.getBlockchainHeight();
@@ -166,8 +170,8 @@ export class NodeWorker {
       height
     };
     
-    // Send the response
-    this.onMessageCallback(response);
+    // Send the response to the network for routing
+    this.onOutgoingMessageCallback(response);
   }
   
   /**
@@ -184,7 +188,7 @@ export class NodeWorker {
    * Requests the blockchain from a specific node
    */
   requestChain(nodeId: string): void {
-    if (!this.onMessageCallback) return;
+    if (!this.onOutgoingMessageCallback) return;
     
     // Create a chain request message
     const message: ChainRequestMessage = {
@@ -193,15 +197,15 @@ export class NodeWorker {
       toNodeId: nodeId
     };
     
-    // Send the message
-    this.onMessageCallback(message);
+    // Send the message to the network for routing
+    this.onOutgoingMessageCallback(message);
   }
   
   /**
    * Requests the blockchain height from a specific node
    */
   requestHeight(nodeId: string): void {
-    if (!this.onMessageCallback) return;
+    if (!this.onOutgoingMessageCallback) return;
     
     // Create a height request message
     const message: HeightRequestMessage = {
@@ -210,8 +214,8 @@ export class NodeWorker {
       toNodeId: nodeId
     };
     
-    // Send the message
-    this.onMessageCallback(message);
+    // Send the message to the network for routing
+    this.onOutgoingMessageCallback(message);
   }
   
   /**

@@ -53,8 +53,8 @@ describe('Network Communication', () => {
       const node1 = networkManager.getNode(node1Id)!;
       const node2 = networkManager.getNode(node2Id)!;
       
-      // Spy on node2's handleMessage method
-      const handleMessageSpy = jest.spyOn(node2, 'handleMessage');
+      // Spy on node2's receiveIncomingMessage method
+      const receiveMessageSpy = jest.spyOn(node2, 'receiveIncomingMessage');
       
       // Mock node1's mining to avoid actual computation
       jest.spyOn(node1, 'startMining').mockImplementation(() => {
@@ -73,9 +73,9 @@ describe('Network Communication', () => {
         };
         
         // Simulate the node broadcasting a block
-        const onMessageCallback = (node1 as any).onMessageCallback;
-        if (onMessageCallback) {
-          onMessageCallback({
+        const onOutgoingMessageCallback = (node1 as any).onOutgoingMessageCallback;
+        if (onOutgoingMessageCallback) {
+          onOutgoingMessageCallback({
             type: 'BLOCK_ANNOUNCEMENT',
             fromNodeId: node1Id,
             block: mockBlock
@@ -87,7 +87,7 @@ describe('Network Communication', () => {
       node1.startMining();
       
       // Node2 should have received the block announcement message
-      expect(handleMessageSpy).toHaveBeenCalledWith(
+      expect(receiveMessageSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'BLOCK_ANNOUNCEMENT',
           fromNodeId: node1Id
@@ -110,9 +110,9 @@ describe('Network Communication', () => {
       
       // Simulate node2 having a longer chain
       // by sending a height response message directly
-      const onMessageCallback = (node1 as any).onMessageCallback;
-      if (onMessageCallback) {
-        onMessageCallback({
+      const onOutgoingMessageCallback = (node1 as any).onOutgoingMessageCallback;
+      if (onOutgoingMessageCallback) {
+        onOutgoingMessageCallback({
           type: 'HEIGHT_RESPONSE',
           fromNodeId: node2Id,
           toNodeId: node1Id,

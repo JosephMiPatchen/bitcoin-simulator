@@ -19,7 +19,7 @@ export class NetworkManager {
     const nodeWorker = new NodeWorker(nodeId);
     
     // Set up message handling
-    nodeWorker.setOnMessage(this.handleNodeMessage.bind(this));
+    nodeWorker.setOnOutgoingMessage(this.routeMessageFromNode.bind(this));
     
     // Add the node to the network
     this.nodes.set(nodeId, nodeWorker);
@@ -50,7 +50,7 @@ export class NetworkManager {
    * This provides maximum redundancy and multiple paths for message propagation
    */
   createFullyConnectedNetwork(nodeCount: number): string[] {
-    // Generate unique phonetic node IDs (e.g., "Alpha-123", "Bravo-456")
+    // Generate unique phonetic node IDs ("Alpha", "Bravo", etc)
     const nodeIds = generateUniqueNodeIds(nodeCount);
     
     // Create the nodes with the phonetic IDs
@@ -71,24 +71,25 @@ export class NetworkManager {
   }
   
   /**
-   * Handles a message from a node and routes it to the appropriate recipient(s)
+   * Receives an outgoing message from a node and routes it through the network
+   * Acts as the network layer that transmits messages between nodes
    */
-  private handleNodeMessage(message: Message): void {
+  private routeMessageFromNode(message: Message): void {
     // Simulate network delay
     setTimeout(() => {
-      this.routeMessage(message);
+      this.deliverMessageToRecipients(message);
     }, this.getRandomNetworkDelay());
   }
   
   /**
-   * Routes a message to the appropriate recipient(s)
+   * Delivers a message to the appropriate recipient(s) based on message type and topology
    */
-  private routeMessage(message: Message): void {
+  private deliverMessageToRecipients(message: Message): void {
     // If the message has a specific recipient, send it only to that node
     if (message.toNodeId) {
       const targetNode = this.nodes.get(message.toNodeId);
       if (targetNode) {
-        targetNode.handleMessage(message);
+        targetNode.receiveIncomingMessage(message);
       } else {
         console.error(`Target node ${message.toNodeId} not found`);
       }
@@ -100,7 +101,7 @@ export class NetworkManager {
     for (const peerId of senderPeers) {
       const peerNode = this.nodes.get(peerId);
       if (peerNode) {
-        peerNode.handleMessage(message);
+        peerNode.receiveIncomingMessage(message);
       }
     }
   }
