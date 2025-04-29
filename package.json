@@ -23,6 +23,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:convergence": "jest src/__tests__/integration/networkIntegration.test.ts -t 'should verify blockchain convergence' --verbose"
   }
 }
