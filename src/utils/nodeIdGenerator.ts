@@ -12,38 +12,31 @@ const PHONETIC_WORDS = [
 
 /**
  * Generates a random node ID using a military phonetic word
- * Optionally adds a random number suffix for uniqueness
  */
-export function generateNodeId(addNumberSuffix: boolean = true): string {
+export function generateNodeId(): string {
   // Pick a random word from the phonetic alphabet
   const randomIndex = Math.floor(Math.random() * PHONETIC_WORDS.length);
-  const word = PHONETIC_WORDS[randomIndex];
-  
-  if (addNumberSuffix) {
-    // Add a random number between 1-999 for uniqueness
-    const randomNumber = Math.floor(Math.random() * 999) + 1;
-    return `${word}-${randomNumber}`;
-  }
-  
-  return word;
+  return PHONETIC_WORDS[randomIndex];
 }
 
 /**
  * Generates an array of unique node IDs
+ * @throws Error if count exceeds the number of available phonetic words
  */
 export function generateUniqueNodeIds(count: number): string[] {
-  const nodeIds: string[] = [];
-  const usedWords = new Set<string>();
+  if (count > PHONETIC_WORDS.length) {
+    throw new Error(`Cannot generate more than ${PHONETIC_WORDS.length} unique node IDs without duplicates`);
+  }
   
-  while (nodeIds.length < count) {
-    const nodeId = generateNodeId();
-    const baseWord = nodeId.split('-')[0]; // Get the word part
-    
-    // If we've used all words and need more IDs, allow duplicates with different numbers
-    if (usedWords.size === PHONETIC_WORDS.length || !usedWords.has(baseWord)) {
-      nodeIds.push(nodeId);
-      usedWords.add(baseWord);
-    }
+  // Create a copy of the phonetic words array
+  const availableWords = [...PHONETIC_WORDS];
+  const nodeIds: string[] = [];
+  
+  // Randomly select words without replacement
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(Math.random() * availableWords.length);
+    const selectedWord = availableWords.splice(randomIndex, 1)[0];
+    nodeIds.push(selectedWord);
   }
   
   return nodeIds;
