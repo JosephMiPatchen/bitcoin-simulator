@@ -34,7 +34,7 @@ export const createRedistributionTransaction = (
   blockHeight: number
 ): Transaction => {
   // Calculate redistribution amounts
-  const redistributionAmount = (SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_PERCENTAGE) / 100;
+  const redistributionAmount = SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_RATIO;
   const amountPerPeer = redistributionAmount / peerNodeIds.length;
   
   // Create input referencing the coinbase output

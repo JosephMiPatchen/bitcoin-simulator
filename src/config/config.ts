@@ -12,7 +12,7 @@ export const SimulatorConfig = {
   NODE_COUNT: 4,             // Number of nodes in the network
   
   // Transaction parameters
-  REDISTRIBUTION_PERCENTAGE: 50, // Percentage of coins to redistribute
+  REDISTRIBUTION_RATIO: 0.5, // Ratio of coins to redistribute (0-1)
   
   // Constants
   REWARDER_NODE_ID: "COINBASE-REWARD",

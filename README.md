@@ -425,7 +425,7 @@ In the real Bitcoin network, there is a single, hardcoded genesis block that all
 This design choice creates an initial "forked" state across the network, which demonstrates several key aspects of Nakamoto consensus:
 
 1. **Consensus Resolution**: The network starts in a divergent state (different genesis blocks) and must converge through the consensus mechanism
-2. **Longest Chain Rule**: When a node mines a block on top of its genesis block, it creates a longer chain (height 1) that other nodes will eventually adopt over their own genesis blocks (height 0)
+2. **Longest Chain Rule**: When a node mines a block on top of its genesis block, it creates a longer chain (with the genesis block at height 0 and the new block at height 1) that other nodes will eventually adopt over their own single genesis blocks (which are at height 0)
 3. **Fork Resolution**: The simulator naturally demonstrates how the network resolves forks without requiring artificial creation of conflicting blocks
 
 ### Implementation Details
