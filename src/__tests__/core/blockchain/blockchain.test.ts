@@ -4,6 +4,40 @@ import { SimulatorConfig } from '../../../config/config';
 import * as blockValidator from '../../../core/validation/blockValidator';
 import * as chainValidator from '../../../core/validation/chainValidator';
 
+// Helper function to create a valid block
+function createValidNextBlock(blockchain: Blockchain): Block {
+  // Get the latest block from the blockchain
+  const latestBlock = blockchain.getLatestBlock();
+  
+  const coinbaseTx: Transaction = {
+    txid: 'test-coinbase-txid',
+    inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
+    outputs: [{ idx: 0, nodeId: 'test-miner', value: SimulatorConfig.BLOCK_REWARD }],
+    timestamp: Date.now()
+  };
+  
+  // Create the block with transactions
+  const transactions = [coinbaseTx];
+  
+  // Calculate the actual transaction hash
+  const transactionHash = blockValidator.calculateTransactionHash(transactions);
+  
+  const block = {
+    header: {
+      height: latestBlock.header.height + 1,
+      previousHeaderHash: latestBlock.hash || '',
+      timestamp: Date.now(),
+      nonce: 0,
+      ceiling: parseInt(SimulatorConfig.CEILING, 16),
+      transactionHash: transactionHash // Use the calculated hash
+    },
+    transactions: transactions,
+    hash: '0000000000000000000000000000000000000000000000000000000000000001' // Valid hash below ceiling
+  };
+  
+  return block;
+}
+
 describe('Blockchain Module', () => {
   let blockchain: Blockchain;
   
@@ -15,7 +49,7 @@ describe('Blockchain Module', () => {
     it('should initialize with a genesis block', () => {
       expect(blockchain.getBlocks().length).toBe(1);
       expect(blockchain.getBlocks()[0].header.height).toBe(0);
-      expect(blockchain.getBlocks()[0].header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_BLOCK_HASH);
+      expect(blockchain.getBlocks()[0].header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_PREV_HASH);
     });
     
     it('should initialize with a UTXO set containing genesis block outputs', () => {
@@ -30,36 +64,6 @@ describe('Blockchain Module', () => {
   });
   
   describe('addBlock', () => {
-    // Helper function to create a valid block
-    const createValidNextBlock = (blockchain: Blockchain): Block => {
-      // Get the latest block from the blockchain
-      
-      const coinbaseTx: Transaction = {
-        txid: 'test-coinbase-txid',
-        inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-        outputs: [{ idx: 0, nodeId: 'test-miner', value: SimulatorConfig.BLOCK_REWARD }],
-        timestamp: Date.now()
-      };
-      
-      // Create the block with transactions
-      const transactions = [coinbaseTx];
-      
-      // Calculate the actual transaction hash
-      const transactionHash = blockValidator.calculateTransactionHash(transactions);
-      
-      return {
-        header: {
-          height: blockchain.getBlocks().length,
-          previousHeaderHash: blockchain.getBlocks()[blockchain.getBlocks().length - 1].hash || '',
-          timestamp: Date.now(),
-          nonce: 0,
-          ceiling: parseInt(SimulatorConfig.CEILING, 16),
-          transactionHash: transactionHash // Use the calculated hash
-        },
-        transactions: transactions,
-        hash: '0000000000000000000000000000000000000000000000000000000000000001' // Valid hash below ceiling
-      };
-    };
     
     it('should add a valid block to the chain', () => {
       const initialChainLength = blockchain.getBlocks().length;
@@ -215,28 +219,5 @@ describe('Blockchain Module', () => {
     });
   });
   
-  // Helper function to create a valid next block
-  function createValidNextBlock(blockchain: Blockchain): Block {
-    const previousBlock = blockchain.getLatestBlock();
-    
-    const coinbaseTx: Transaction = {
-      txid: 'test-coinbase-txid',
-      inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-      outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD }],
-      timestamp: Date.now()
-    };
-    
-    return {
-      header: {
-        transactionHash: 'test-transaction-hash',
-        timestamp: Date.now(),
-        previousHeaderHash: previousBlock.hash!,
-        ceiling: parseInt(SimulatorConfig.CEILING, 16),
-        nonce: 0,
-        height: previousBlock.header.height + 1
-      },
-      transactions: [coinbaseTx],
-      hash: '0000000000000000000000000000000000000000000000000000000000000001' // Valid hash below ceiling
-    };
-  }
+  // This duplicate helper function is removed to avoid confusion
 });

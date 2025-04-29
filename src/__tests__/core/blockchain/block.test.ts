@@ -17,7 +17,7 @@ describe('Block Module', () => {
       
       // Check header
       expect(genesisBlock.header.height).toBe(0);
-      expect(genesisBlock.header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_BLOCK_HASH);
+      expect(genesisBlock.header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_PREV_HASH);
       expect(genesisBlock.header.ceiling).toBe(parseInt(SimulatorConfig.CEILING, 16));
       
       // Check transactions
@@ -32,7 +32,7 @@ describe('Block Module', () => {
       header: {
         transactionHash: 'mock-transaction-hash',
         timestamp: Date.now() - 10000,
-        previousHeaderHash: SimulatorConfig.GENESIS_BLOCK_HASH,
+        previousHeaderHash: SimulatorConfig.GENESIS_PREV_HASH,
         ceiling: parseInt(SimulatorConfig.CEILING, 16),
         nonce: 0,
         height: 0

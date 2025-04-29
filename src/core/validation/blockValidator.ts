@@ -2,6 +2,7 @@ import { Block, BlockHeader } from '../../types/types';
 import { sha256Hash, isHashBelowCeiling } from '../../utils/hashUtils';
 import { SimulatorConfig } from '../../config/config';
 import { validateTransaction } from './transactionValidator';
+import { updateUTXOSet } from '../blockchain/utxo';
 
 /**
  * Creates a block header hash by hashing the header
@@ -34,18 +35,29 @@ export const validateBlock = (
     return false;
   }
   
+  // Create a temporary UTXO set for sequential validation
+  // This allows transactions within the same block to reference outputs
+  // created by earlier transactions in the block
+  let tempUtxoSet = { ...utxoSet };
+  
   // 2. First transaction must be a coinbase transaction
-  if (!validateTransaction(transactions[0], utxoSet, header.height, true)) {
+  if (!validateTransaction(transactions[0], tempUtxoSet, header.height, true)) {
     console.error('First transaction is not a valid coinbase transaction');
     return false;
   }
   
-  // 3. Validate all other transactions
+  // Update the temporary UTXO set with the coinbase transaction
+  tempUtxoSet = updateUTXOSet(tempUtxoSet, transactions[0]);
+  
+  // 3. Validate all other transactions sequentially, updating the UTXO set after each one
   for (let i = 1; i < transactions.length; i++) {
-    if (!validateTransaction(transactions[i], utxoSet, header.height)) {
+    if (!validateTransaction(transactions[i], tempUtxoSet, header.height)) {
       console.error(`Transaction at index ${i} is invalid`);
       return false;
     }
+    
+    // Update the temporary UTXO set with this transaction
+    tempUtxoSet = updateUTXOSet(tempUtxoSet, transactions[i]);
   }
   
   // 4. Validate transaction hash in header matches the hash of all transactions

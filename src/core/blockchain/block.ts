@@ -12,7 +12,7 @@ export const createBlockTemplate = (
   transactions: Transaction[]
 ): Block => {
   const height = previousBlock ? previousBlock.header.height + 1 : 0;
-  const previousHeaderHash = previousBlock ? previousBlock.hash! : SimulatorConfig.GENESIS_BLOCK_HASH;
+  const previousHeaderHash = previousBlock ? previousBlock.hash! : SimulatorConfig.GENESIS_PREV_HASH;
   
   const header: BlockHeader = {
     transactionHash: calculateTransactionHash(transactions),
@@ -57,8 +57,9 @@ export const createGenesisBlock = (minerNodeId: string): Block => {
   
   const block = createBlockTemplate(null, transactions);
   
-  // For the genesis block, we'll just set a valid hash without mining
-  block.hash = SimulatorConfig.GENESIS_BLOCK_HASH;
+  // Calculate the actual hash of the genesis block header
+  // This ensures each node has a unique genesis block hash based on its coinbase transaction
+  block.hash = calculateBlockHeaderHash(block.header);
   
   return block;
 };

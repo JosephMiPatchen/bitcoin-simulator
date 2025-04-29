@@ -15,15 +15,23 @@ import {
  * This simulates a node running in its own process/thread
  */
 export class NodeWorker {
-  private node: Node;
+  private _node: Node;
   private onOutgoingMessageCallback?: (message: Message) => void;
+  
+  /**
+   * Gets the underlying Node instance
+   * @returns The Node instance
+   */
+  get node(): Node {
+    return this._node;
+  }
   
   constructor(nodeId: string) {
     // Create the node instance
-    this.node = new Node(nodeId);
+    this._node = new Node(nodeId);
     
     // Set up callback for block broadcast events
-    this.node.setOnBlockBroadcast(this.handleBlockBroadcast.bind(this));
+    this._node.setOnBlockBroadcast(this.handleBlockBroadcast.bind(this));
   }
   
   /**
@@ -63,28 +71,28 @@ export class NodeWorker {
    * Sets the peer IDs for this node
    */
   setPeers(peerIds: string[]): void {
-    this.node.setPeers(peerIds);
+    this._node.setPeers(peerIds);
   }
   
   /**
    * Starts mining on this node
    */
   startMining(): void {
-    this.node.startMining();
+    this._node.startMining();
   }
   
   /**
    * Stops mining on this node
    */
   stopMining(): void {
-    this.node.stopMining();
+    this._node.stopMining();
   }
   
   /**
    * Gets the current state of the node
    */
   getState(): any {
-    return this.node.getState();
+    return this._node.getState();
   }
   
   /**
@@ -97,7 +105,7 @@ export class NodeWorker {
     // Create a block announcement message
     const message: BlockAnnouncementMessage = {
       type: MessageType.BLOCK_ANNOUNCEMENT,
-      fromNodeId: this.node.getState().nodeId,
+      fromNodeId: this._node.getState().nodeId,
       block
     };
     
@@ -112,7 +120,7 @@ export class NodeWorker {
    */
   private handleBlockAnnouncement(message: BlockAnnouncementMessage): void {
     // Process the received block
-    this.node.receiveBlock(message.block);
+    this._node.receiveBlock(message.block);
   }
   
   /**
@@ -123,12 +131,12 @@ export class NodeWorker {
     if (!this.onOutgoingMessageCallback) return;
     
     // Get all blocks in the chain
-    const blocks = this.node.getBlocks();
+    const blocks = this._node.getBlocks();
     
     // Create a chain response message
     const response: ChainResponseMessage = {
       type: MessageType.CHAIN_RESPONSE,
-      fromNodeId: this.node.getState().nodeId,
+      fromNodeId: this._node.getState().nodeId,
       toNodeId: message.fromNodeId,
       blocks
     };
@@ -142,7 +150,9 @@ export class NodeWorker {
    */
   private handleChainResponse(message: ChainResponseMessage): void {
     // Process the received chain
-    this.node.receiveChain(message.blocks);
+    if (message.blocks.length > 0) {
+      this._node.receiveChain(message.blocks);
+    }
   }
   
   /**
@@ -152,15 +162,15 @@ export class NodeWorker {
   private handleHeightRequest(message: HeightRequestMessage): void {
     if (!this.onOutgoingMessageCallback) return;
     
-    // Get the current blockchain height
-    const height = this.node.getBlockchainHeight();
+    // Get our current blockchain height
+    const ourHeight = this._node.getBlockchainHeight();
     
     // Create a height response message
     const response: HeightResponseMessage = {
       type: MessageType.HEIGHT_RESPONSE,
-      fromNodeId: this.node.getState().nodeId,
+      fromNodeId: this._node.getState().nodeId,
       toNodeId: message.fromNodeId,
-      height
+      height: ourHeight
     };
     
     // Send the response to the network for routing
@@ -171,8 +181,11 @@ export class NodeWorker {
    * Handles a height response message from another node
    */
   private handleHeightResponse(message: HeightResponseMessage): void {
-    // If the other node has a longer chain, request it
-    if (message.height > this.node.getBlockchainHeight()) {
+    // Get our current blockchain height
+    const ourHeight = this._node.getBlockchainHeight();
+    
+    // If the responding node has a longer chain, request their full chain
+    if (message.height > ourHeight) {
       this.requestChain(message.fromNodeId);
     }
   }
@@ -180,14 +193,14 @@ export class NodeWorker {
   /**
    * Requests the blockchain from a specific node
    */
-  requestChain(nodeId: string): void {
+  requestChain(fromNodeId: string): void {
     if (!this.onOutgoingMessageCallback) return;
     
     // Create a chain request message
     const message: ChainRequestMessage = {
       type: MessageType.CHAIN_REQUEST,
-      fromNodeId: this.node.getState().nodeId,
-      toNodeId: nodeId
+      fromNodeId: this._node.getState().nodeId,
+      toNodeId: fromNodeId
     };
     
     // Send the message to the network for routing
@@ -203,7 +216,7 @@ export class NodeWorker {
     // Create a height request message
     const message: HeightRequestMessage = {
       type: MessageType.HEIGHT_REQUEST,
-      fromNodeId: this.node.getState().nodeId,
+      fromNodeId: this._node.getState().nodeId,
       toNodeId: nodeId
     };
     
@@ -215,7 +228,7 @@ export class NodeWorker {
    * Requests the blockchain height from all peers
    */
   requestHeightFromPeers(): void {
-    const peerIds = this.node.getState().peerIds;
+    const peerIds = this._node.getState().peerIds;
     
     // Request height from each peer
     for (const peerId of peerIds) {

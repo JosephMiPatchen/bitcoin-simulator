@@ -1,5 +1,5 @@
 import { Node } from '../../core/node';
-import { Block, Transaction } from '../../types/types';
+import { Block } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
 
 describe('Node Module', () => {
@@ -31,7 +31,7 @@ describe('Node Module', () => {
     it('should have a valid genesis block', () => {
       const genesisBlock = node.getBlocks()[0];
       expect(genesisBlock.header.height).toBe(0);
-      expect(genesisBlock.header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_BLOCK_HASH);
+      expect(genesisBlock.header.previousHeaderHash).toBe(SimulatorConfig.GENESIS_PREV_HASH);
     });
   });
   
@@ -102,7 +102,7 @@ describe('Node Module', () => {
           header: {
             transactionHash: 'genesis-tx-hash',
             timestamp: Date.now(),
-            previousHeaderHash: SimulatorConfig.GENESIS_BLOCK_HASH,
+            previousHeaderHash: SimulatorConfig.GENESIS_PREV_HASH,
             ceiling: parseInt(SimulatorConfig.CEILING, 16),
             nonce: 0,
             height: 0
@@ -153,7 +153,7 @@ describe('Node Module', () => {
           header: {
             transactionHash: 'genesis-tx-hash',
             timestamp: Date.now(),
-            previousHeaderHash: SimulatorConfig.GENESIS_BLOCK_HASH,
+            previousHeaderHash: SimulatorConfig.GENESIS_PREV_HASH,
             ceiling: parseInt(SimulatorConfig.CEILING, 16),
             nonce: 0,
             height: 0
