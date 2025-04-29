@@ -438,3 +438,55 @@ To support this design:
 4. The chain validator skips validation for genesis blocks but still verifies they match the expected structure
 
 This approach provides a clear demonstration of how Nakamoto consensus can resolve inconsistencies and converge on a single chain, even when starting from different initial states - a powerful illustration of the robustness of Bitcoin's consensus mechanism.
+
+## Network Communication Architecture
+
+The simulator implements a realistic peer-to-peer network communication layer that mirrors key aspects of Bitcoin's network protocol while remaining simple enough to understand.
+
+### Mesh Network Topology
+
+The network uses a fully-connected mesh topology where:
+
+1. **All nodes connect to all other nodes**: This provides maximum redundancy and multiple paths for message propagation
+2. **Deterministic node naming**: Nodes are named using the NATO phonetic alphabet (Alpha, Bravo, Charlie, etc.) in alphabetical order for easier debugging and consistent simulation runs
+3. **Simulated network latency**: Random delays are introduced between nodes to simulate real-world network conditions
+
+### Message Types and Communication Patterns
+
+The network layer implements two complementary communication patterns:
+
+#### 1. Push Model (Event-Driven)
+
+* **Block Announcements**: When a node mines a new block, it immediately announces it to all peers
+* **Implementation**: Uses a callback-based approach where the Node class triggers events that the network layer listens for
+* **Example**: `node.setOnBlockBroadcast(this.handleBlockBroadcast.bind(this))`
+
+#### 2. Pull Model (Polling-Based)
+
+* **Height Requests**: Nodes periodically check with peers to discover longer chains
+* **Chain Requests**: When a longer chain is discovered, the node requests the full chain
+* **Implementation**: Uses direct method calls rather than callbacks, initiated by the network layer
+* **Example**: `NetworkManager.startPeriodicHeightRequests()` which triggers height checks across all nodes
+
+### Two-Step Chain Synchronization
+
+The network implements an efficient two-step approach to chain synchronization:
+
+1. **Height Exchange**: Nodes first exchange lightweight height information
+2. **Chain Transfer**: Only when a longer chain is discovered does a node request the full chain
+
+This approach minimizes unnecessary data transfer while ensuring nodes can quickly discover and adopt the longest valid chain.
+
+### Message Handling Naming Conventions
+
+The network communication layer uses clear naming conventions to distinguish between different message flows:
+
+1. **Node to Network**: 
+   - `setOnOutgoingMessage` - Sets up the callback for node-to-network communication
+   - `routeMessageFromNode` - Handles messages sent from nodes to the network
+
+2. **Network to Node**:
+   - `deliverMessageToRecipients` - Routes messages to appropriate recipient nodes
+   - `receiveIncomingMessage` - Processes messages received by a node from the network
+
+This naming clearly separates the responsibilities and direction of message flow, making the code more readable and maintainable.
