@@ -10,6 +10,9 @@ export const SimulatorConfig = {
   
   // Network parameters
   NODE_COUNT: 4,             // Number of nodes in the network
+  MIN_NETWORK_DELAY_MS: 50,  // Minimum network delay in milliseconds
+  MAX_NETWORK_DELAY_MS: 200, // Maximum network delay in milliseconds
+  HEIGHT_CHECK_INTERVAL_MS: 5000, // Interval for checking peer heights
   
   // Transaction parameters
   REDISTRIBUTION_RATIO: 0.5, // Ratio of coins to redistribute (0-1)
