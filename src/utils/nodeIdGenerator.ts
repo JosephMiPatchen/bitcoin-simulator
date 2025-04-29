@@ -28,16 +28,7 @@ export function generateUniqueNodeIds(count: number): string[] {
     throw new Error(`Cannot generate more than ${PHONETIC_WORDS.length} unique node IDs without duplicates`);
   }
   
-  // Create a copy of the phonetic words array
-  const availableWords = [...PHONETIC_WORDS];
-  const nodeIds: string[] = [];
-  
-  // Randomly select words without replacement
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * availableWords.length);
-    const selectedWord = availableWords.splice(randomIndex, 1)[0];
-    nodeIds.push(selectedWord);
-  }
-  
-  return nodeIds;
+  // Simply take the first N words from the phonetic alphabet
+  // This ensures deterministic naming: first node is always Alpha, second is Bravo, etc.
+  return PHONETIC_WORDS.slice(0, count);
 }
