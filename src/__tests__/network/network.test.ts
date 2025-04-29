@@ -46,6 +46,7 @@ describe('Network Communication', () => {
     it('should route messages between nodes', () => {
       // Create a network with 2 nodes for simplicity
       const nodeIds = networkManager.createFullyConnectedNetwork(2);
+      // We don't know the exact IDs, but we can get them from the network
       const [node1Id, node2Id] = nodeIds;
       
       // Get the nodes
@@ -103,7 +104,6 @@ describe('Network Communication', () => {
       
       // Get the nodes
       const node1 = networkManager.getNode(node1Id)!;
-      const node2 = networkManager.getNode(node2Id)!;
       
       // Spy on node1's requestChain method
       const requestChainSpy = jest.spyOn(node1, 'requestChain');

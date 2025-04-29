@@ -1,6 +1,7 @@
 import { NodeWorker } from './nodeWorker';
 import { Message } from './messages';
 import { SimulatorConfig } from '../config/config';
+import { generateUniqueNodeIds } from '../utils/nodeIdGenerator';
 
 /**
  * NetworkManager class to manage a network of nodes
@@ -29,6 +30,7 @@ export class NetworkManager {
   /**
    * Sets up the network topology
    * Defines which nodes are connected to each other
+   * This allows for creating various network structures (mesh, ring, star, etc.)
    */
   setupNetworkTopology(topology: Map<string, string[]>): void {
     this.networkTopology = new Map(topology);
@@ -43,19 +45,20 @@ export class NetworkManager {
   }
   
   /**
-   * Creates a fully connected network with the specified number of nodes
+   * Creates a fully connected mesh network with the specified number of nodes
+   * In a mesh topology, every node is directly connected to every other node
+   * This provides maximum redundancy and multiple paths for message propagation
    */
   createFullyConnectedNetwork(nodeCount: number): string[] {
-    const nodeIds: string[] = [];
+    // Generate unique phonetic node IDs (e.g., "Alpha-123", "Bravo-456")
+    const nodeIds = generateUniqueNodeIds(nodeCount);
     
-    // Create the nodes
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeId = `node-${i}`;
+    // Create the nodes with the phonetic IDs
+    for (const nodeId of nodeIds) {
       this.createNode(nodeId);
-      nodeIds.push(nodeId);
     }
     
-    // Set up the network topology (fully connected)
+    // Set up the network topology (mesh)
     const topology = new Map<string, string[]>();
     for (const nodeId of nodeIds) {
       // Each node is connected to all other nodes
