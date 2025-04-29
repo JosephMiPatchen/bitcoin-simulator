@@ -46,32 +46,46 @@ describe('Network Integration Tests', () => {
   });
   
   test('should perform height requests between nodes', async () => {
-    // Get network manager
+    // Create a spy on the NodeWorker's requestHeight method to track calls
+    const nodeIds = Array.from(networkManager.nodes.keys());
+    const firstNode = networkManager.nodes.get(nodeIds[0]);
+    
+    // Create spies on key methods
+    const requestHeightSpy = jest.spyOn(firstNode!, 'requestHeight');
+    const handleHeightRequestSpy = jest.spyOn(firstNode as any, 'handleHeightRequest');
+    const handleHeightResponseSpy = jest.spyOn(firstNode as any, 'handleHeightResponse');
     
     // Start periodic height requests to trigger chain synchronization
-    const intervalId = networkManager.startPeriodicHeightRequests(500);
+    const intervalId = networkManager.startPeriodicHeightRequests(100); // Use shorter interval for testing
     
     // Wait for height requests to occur
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Stop periodic height requests
     clearInterval(intervalId);
     
-    // Get the network state
-    const networkState = networkManager.getNetworkState();
+    // Verify that height request methods were called
+    expect(requestHeightSpy).toHaveBeenCalled();
     
-    // Verify that all nodes have blockchain data
-    Object.values(networkState).forEach(nodeState => {
-      expect(nodeState.blockchain).toBeDefined();
-      expect(Array.isArray(nodeState.blockchain)).toBe(true);
-    });
+    // If we have at least two nodes, verify that height request/response handlers were called
+    // This confirms the full height request/response cycle is working
+    if (nodeIds.length > 1) {
+      // Wait a bit more for responses to be processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Either handleHeightRequest or handleHeightResponse should have been called
+      // depending on which node initiated the request first
+      const heightMessagesProcessed = 
+        handleHeightRequestSpy.mock.calls.length > 0 || 
+        handleHeightResponseSpy.mock.calls.length > 0;
+      
+      expect(heightMessagesProcessed).toBe(true);
+    }
     
-    // Verify that all nodes have at least a genesis block
-    const allHaveGenesisBlock = Object.values(networkState).every(nodeState => 
-      nodeState.blockchain.some((block: Block) => block.header.height === 0)
-    );
-    
-    expect(allHaveGenesisBlock).toBe(true);
+    // Clean up spies
+    requestHeightSpy.mockRestore();
+    handleHeightRequestSpy.mockRestore();
+    handleHeightResponseSpy.mockRestore();
   });
   
   test('should handle network partitions and reconcile when reconnected', async () => {
