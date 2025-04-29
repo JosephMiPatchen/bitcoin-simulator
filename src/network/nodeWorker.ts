@@ -22,9 +22,8 @@ export class NodeWorker {
     // Create the node instance
     this.node = new Node(nodeId);
     
-    // Set up callbacks for node events
+    // Set up callback for block broadcast events
     this.node.setOnBlockBroadcast(this.handleBlockBroadcast.bind(this));
-    this.node.setOnChainUpdated(this.handleChainUpdated.bind(this));
   }
   
   /**
@@ -106,13 +105,7 @@ export class NodeWorker {
     this.onOutgoingMessageCallback(message);
   }
   
-  /**
-   * Handles a chain updated event from the node
-   */
-  private handleChainUpdated(): void {
-    // This is a local event, no need to send a message
-    // But we could use this to trigger a height announcement if needed
-  }
+
   
   /**
    * Handles a block announcement message from another node
