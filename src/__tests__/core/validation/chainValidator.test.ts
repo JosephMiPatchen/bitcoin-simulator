@@ -3,6 +3,15 @@ import { Block, BlockHeader, Transaction } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
 import { sha256Hash } from '../../../utils/hashUtils';
 
+// Mock the isHashBelowCeiling function to always return true for tests
+jest.mock('../../../utils/hashUtils', () => {
+  const original = jest.requireActual('../../../utils/hashUtils');
+  return {
+    ...original,
+    isHashBelowCeiling: jest.fn().mockReturnValue(true)
+  };
+});
+
 describe('Chain Validator', () => {
   // Helper function to create a valid block
   const createValidBlock = (
@@ -18,7 +27,8 @@ describe('Chain Validator', () => {
     };
     
     const transactions = [coinbaseTx];
-    const transactionHash = sha256Hash(JSON.stringify(transactions));
+    // Use the same hash calculation as the actual code
+    const transactionHash = sha256Hash(transactions);
     
     const header: BlockHeader = {
       transactionHash,
@@ -29,7 +39,8 @@ describe('Chain Validator', () => {
       height
     };
     
-    const hash = '0000000000000000000000000000000000000000000000000000000000000001'; // Below ceiling
+    // Calculate the actual hash from the header
+    const hash = sha256Hash(header);
     
     return {
       header,

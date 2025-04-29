@@ -1,5 +1,5 @@
 import { SimulatorConfig } from '../../config/config';
-import { Block, Transaction, TransactionOutput, UTXOSet } from '../../types/types';
+import { Block, Transaction, UTXOSet } from '../../types/types';
 
 /**
  * Helper function to process a transaction for UTXO updates

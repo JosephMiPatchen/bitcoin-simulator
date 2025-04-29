@@ -49,7 +49,7 @@ describe('Miner Module', () => {
       expect(redistributionTx.outputs.length).toBe(peerIds.length + 1);
       
       // Check peer outputs
-      const redistributionAmount = (SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_PERCENTAGE) / 100;
+      const redistributionAmount = SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_RATIO;
       const amountPerPeer = redistributionAmount / peerIds.length;
       
       for (let i = 0; i < peerIds.length; i++) {

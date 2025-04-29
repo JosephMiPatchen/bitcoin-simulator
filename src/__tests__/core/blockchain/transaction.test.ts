@@ -98,7 +98,7 @@ describe('Transaction Module', () => {
       const transaction = createRedistributionTransaction(coinbaseTxid, minerNodeId, peerNodeIds, blockHeight);
       
       // Calculate expected values
-      const redistributionAmount = (SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_PERCENTAGE) / 100;
+      const redistributionAmount = SimulatorConfig.BLOCK_REWARD * SimulatorConfig.REDISTRIBUTION_RATIO;
       const amountPerPeer = redistributionAmount / peerNodeIds.length;
       
       // Check peer outputs
