@@ -1,4 +1,25 @@
+import { SimulatorConfig } from '../../config/config';
 import { Block, Transaction, TransactionOutput, UTXOSet } from '../../types/types';
+
+/**
+ * Helper function to process a transaction for UTXO updates
+ * Removes spent outputs and adds new outputs
+ */
+const processTransactionForUTXO = (utxoSet: UTXOSet, transaction: Transaction): void => {
+  // Remove spent outputs from UTXO set
+  for (const input of transaction.inputs) {
+    // The delete operator safely handles non-existent properties in the case of coinbase inputs
+    delete utxoSet[input.sourceOutputId];
+  }
+  
+  // Add new outputs to UTXO set
+  if (transaction.txid) {
+    for (const output of transaction.outputs) {
+      const outputId = `${transaction.txid}-${output.idx}`;
+      utxoSet[outputId] = output;
+    }
+  }
+};
 
 /**
  * Updates the UTXO set with a new transaction
@@ -8,39 +29,32 @@ export const updateUTXOSet = (
   utxoSet: UTXOSet,
   transaction: Transaction
 ): UTXOSet => {
+  // Create a copy of the UTXO set to maintain immutability
+  // This ensures the original set remains unchanged if validation fails
+  // and makes debugging easier by preserving state history
   const newUtxoSet = { ...utxoSet };
   
   // Validate that all non-coinbase inputs exist in the UTXO set
-  const isCoinbase = transaction.inputs.length === 1 && 
-                    transaction.inputs[0].sourceOutputId === 'COINBASE-REWARD';
+  const isCoinbase = transaction.inputs[0].sourceOutputId === SimulatorConfig.REWARDER_NODE_ID;
   
   if (!isCoinbase) {
     // Check if all inputs exist in the UTXO set
-    const allInputsExist = transaction.inputs.every(input => 
-      input.sourceOutputId === 'COINBASE-REWARD' || utxoSet[input.sourceOutputId] !== undefined
+    const missingInputs = transaction.inputs.filter(input => 
+      utxoSet[input.sourceOutputId] === undefined
     );
     
-    // If any input doesn't exist, return the original UTXO set unchanged
-    if (!allInputsExist) {
+    // If any input doesn't exist, log errors and return the original UTXO set unchanged
+    if (missingInputs.length > 0) {
+      console.error(`Transaction ${transaction.txid} has missing inputs:`);
+      missingInputs.forEach(input => {
+        console.error(`  Missing input: ${input.sourceOutputId}`);
+      });
       return utxoSet;
     }
   }
   
-  // Remove spent outputs from UTXO set
-  for (const input of transaction.inputs) {
-    // Skip coinbase inputs as they don't reference existing UTXOs
-    if (input.sourceOutputId !== 'COINBASE-REWARD') {
-      delete newUtxoSet[input.sourceOutputId];
-    }
-  }
-  
-  // Add new outputs to UTXO set
-  if (transaction.txid) {
-    for (const output of transaction.outputs) {
-      const outputId = `${transaction.txid}-${output.idx}`;
-      newUtxoSet[outputId] = output;
-    }
-  }
+  // Process the transaction (remove inputs, add outputs)
+  processTransactionForUTXO(newUtxoSet, transaction);
   
   return newUtxoSet;
 };
@@ -67,19 +81,8 @@ export const rebuildUTXOSetFromTransactions = (transactions: Transaction[]): UTX
     // Skip transactions without txid
     if (!transaction.txid) continue;
     
-    // Remove spent outputs
-    for (const input of transaction.inputs) {
-      // Skip coinbase inputs
-      if (input.sourceOutputId !== 'COINBASE-REWARD') {
-        delete utxoSet[input.sourceOutputId];
-      }
-    }
-    
-    // Add new outputs
-    for (const output of transaction.outputs) {
-      const outputId = `${transaction.txid}-${output.idx}`;
-      utxoSet[outputId] = output;
-    }
+    // Process the transaction (remove inputs, add outputs)
+    processTransactionForUTXO(utxoSet, transaction);
   }
   
   return utxoSet;
@@ -94,38 +97,6 @@ export const rebuildUTXOSet = (transactions: Transaction[]): UTXOSet => {
   return rebuildUTXOSetFromTransactions(transactions);
 };
 
-/**
- * Gets all UTXOs belonging to a specific node
- */
-export const getNodeUTXOs = (
-  utxoSet: UTXOSet,
-  nodeId: string
-): { [outputId: string]: TransactionOutput } => {
-  const nodeUtxos: { [outputId: string]: TransactionOutput } = {};
-  
-  for (const [outputId, output] of Object.entries(utxoSet)) {
-    if (output.nodeId === nodeId) {
-      nodeUtxos[outputId] = output;
-    }
-  }
-  
-  return nodeUtxos;
-};
-
-/**
- * Calculates the total balance for a node from the UTXO set
- */
-export const calculateNodeBalance = (
-  utxoSet: UTXOSet,
-  nodeId: string
-): number => {
-  let balance = 0;
-  
-  for (const output of Object.values(utxoSet)) {
-    if (output.nodeId === nodeId) {
-      balance += output.value;
-    }
-  }
-  
-  return balance;
-};
+// Note: Functions for getting node UTXOs and calculating node balance have been removed
+// to keep the core implementation as simple as possible.
+// If needed in the future, these can be implemented in the UI layer or added back to the core.
