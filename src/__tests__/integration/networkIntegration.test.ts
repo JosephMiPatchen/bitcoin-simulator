@@ -22,23 +22,27 @@ describe('Network Integration Tests', () => {
     networkManager.stopAllNodes();
   });
   
-  test('should have all nodes initialized with genesis blocks', async () => {
+  test('should have all nodes initialized with genesis blocks at height 0', async () => {
     // Get the network state
     const networkState = networkManager.getNetworkState();
     
-    // Check that all nodes have at least the genesis block
+    // Verify that each node has a genesis block at height 0
     Object.values(networkState).forEach(nodeState => {
+      // Each node should have at least one block (the genesis block)
       expect(nodeState.blockchain.length).toBeGreaterThanOrEqual(1);
-    });
-    
-    // Check that all nodes have the same genesis block
-    const genesisBlocks = Object.values(networkState).map(nodeState => {
+      
+      // Each node should have a block at height 0 (genesis block)
       const genesisBlock = nodeState.blockchain.find((block: Block) => block.header.height === 0);
-      return genesisBlock?.header.previousHeaderHash;
+      expect(genesisBlock).toBeDefined();
+      
+      // Genesis block should have at least one transaction (the coinbase)
+      expect(genesisBlock?.transactions.length).toBeGreaterThanOrEqual(1);
     });
     
-    // All genesis blocks should have the same previousHeaderHash (typically all zeros for genesis)
-    expect(new Set(genesisBlocks).size).toBeLessThanOrEqual(3); // Allow for different genesis blocks per node
+    // Note: In our simulator, each node creates its own genesis block.
+    // This creates an initial "forked" state across the network,
+    // which demonstrates how Nakamoto consensus resolves inconsistencies
+    // when nodes start from different initial states.
   });
   
   test('should perform height requests between nodes', async () => {
