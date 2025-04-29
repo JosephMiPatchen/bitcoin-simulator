@@ -23,7 +23,7 @@ export interface UTXOSet {
   [sourceOutputId: string]: TransactionOutput;
 }
 
-export interface BlockHeader {
+export interface BlockHeader { // note: we dont have a field for headers hash, we compute that runtime upon validation to keep process robust
   transactionHash: string;  // SHA256 hash of all transactions
   timestamp: number;        // Local machine time
   previousHeaderHash: string; // Previous block's header hash

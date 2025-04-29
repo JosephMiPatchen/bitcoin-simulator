@@ -21,6 +21,9 @@ export class Node {
     this.blockchain = new Blockchain(nodeId);
     
     // Initialize miner with callback for when a block is mined
+    // Using .bind(this) ensures the handleMinedBlock method maintains the Node instance context
+    // when called by the Miner. Without binding, 'this' would be undefined or refer to the wrong object
+    // when the callback is executed, causing errors when accessing Node properties or methods.
     this.miner = new Miner(nodeId, this.handleMinedBlock.bind(this));
   }
   
@@ -92,6 +95,8 @@ export class Node {
       if (this.onChainUpdated) {
         this.onChainUpdated();
       }
+    } else {
+      console.error(`Node ${this.nodeId}: Rejected invalid block at claimed height ${block.header.height}`);
     }
   }
   
@@ -113,6 +118,8 @@ export class Node {
       if (this.onChainUpdated) {
         this.onChainUpdated();
       }
+    } else {
+      console.error(`Node ${this.nodeId}: Rejected chain of length ${blocks.length} (invalid or not longer than current chain)`);
     }
   }
   
@@ -136,6 +143,8 @@ export class Node {
       if (this.onChainUpdated) {
         this.onChainUpdated();
       }
+    } else {
+      console.error(`Node ${this.nodeId}: Failed to add self-mined block to chain - this should never happen!`);
     }
   }
   

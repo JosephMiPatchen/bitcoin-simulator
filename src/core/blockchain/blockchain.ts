@@ -122,7 +122,7 @@ export class Blockchain {
    * Validates a chain of blocks
    */
   private isValidChain(chain: Block[]): boolean {
-    return validateChain(chain, createGenesisBlock(this.nodeId));
+    return validateChain(chain);
   }
   
   /**

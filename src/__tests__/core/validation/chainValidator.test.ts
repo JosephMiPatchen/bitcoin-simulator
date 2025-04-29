@@ -63,22 +63,21 @@ describe('Chain Validator', () => {
   it('should validate a valid blockchain', () => {
     const chain = createValidChain(3); // Chain with 3 blocks
     
-    const result = validateChain(chain, chain[0]);
+    const result = validateChain(chain);
     expect(result).toBe(true);
   });
 
   it('should validate a blockchain with only genesis block', () => {
     const chain = createValidChain(1); // Chain with just genesis block
     
-    const result = validateChain(chain, chain[0]);
+    const result = validateChain(chain);
     expect(result).toBe(true);
   });
 
   it('should reject an empty blockchain', () => {
     const chain: Block[] = [];
-    const genesisBlock = createValidBlock(SimulatorConfig.GENESIS_BLOCK_HASH, 0);
     
-    const result = validateChain(chain, genesisBlock);
+    const result = validateChain(chain);
     expect(result).toBe(false);
   });
 
@@ -86,7 +85,7 @@ describe('Chain Validator', () => {
     const chain = createValidChain(3);
     chain[1].header.height = 5; // Invalid height (should be 1)
     
-    const result = validateChain(chain, chain[0]);
+    const result = validateChain(chain);
     expect(result).toBe(false);
   });
 
@@ -94,7 +93,7 @@ describe('Chain Validator', () => {
     const chain = createValidChain(3);
     chain[2].header.previousHeaderHash = 'invalid-previous-hash'; // Breaks the chain
     
-    const result = validateChain(chain, chain[0]);
+    const result = validateChain(chain);
     expect(result).toBe(false);
   });
 
@@ -102,7 +101,7 @@ describe('Chain Validator', () => {
     const chain = createValidChain(3);
     chain[2].header.timestamp = chain[1].header.timestamp - 1000; // Earlier than previous block
     
-    const result = validateChain(chain, chain[0]);
+    const result = validateChain(chain);
     expect(result).toBe(false);
   });
 
@@ -110,10 +109,15 @@ describe('Chain Validator', () => {
     const chain = createValidChain(3);
     chain[0].header.previousHeaderHash = 'invalid-genesis-hash'; // Should be GENESIS_BLOCK_HASH
     
-    // Create a valid genesis block for comparison
-    const validGenesisBlock = createValidBlock(SimulatorConfig.GENESIS_BLOCK_HASH, 0);
+    const result = validateChain(chain);
+    expect(result).toBe(false);
+  });
+
+  it('should reject a blockchain with invalid genesis block height', () => {
+    const chain = createValidChain(3);
+    chain[0].header.height = 1; // Genesis block should have height 0
     
-    const result = validateChain(chain, validGenesisBlock);
+    const result = validateChain(chain);
     expect(result).toBe(false);
   });
 });

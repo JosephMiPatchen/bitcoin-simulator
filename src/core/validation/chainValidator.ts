@@ -1,24 +1,26 @@
 import { Block, UTXOSet } from '../../types/types';
 import { validateBlock } from './blockValidator';
-import { rebuildUTXOSetFromTransactions } from '../blockchain/utxo';
+import { updateUTXOSet } from '../blockchain/utxo';
 
 /**
  * Validates a chain of blocks
  * Returns true if the chain is valid, false otherwise
+ * 
+ * Note: In this simulator, each node creates its own genesis block.
+ * When validating a chain from another node, we don't require that
+ * the first block matches our own genesis block. Instead, we validate
+ * that the chain is internally consistent and follows all other rules.
  */
-export const validateChain = (
-  chain: Block[],
-  genesisBlock: Block
-): boolean => {
+export const validateChain = (chain: Block[]): boolean => {
   // Check if the chain is empty
   if (chain.length === 0) {
     console.error('Chain is empty');
     return false;
   }
   
-  // Check if the genesis block is valid
-  if (JSON.stringify(chain[0]) !== JSON.stringify(genesisBlock)) {
-    console.error('Genesis block is invalid');
+  // Verify the first block has height 0 (is a genesis block)
+  if (chain[0].header.height !== 0) {
+    console.error('First block is not a genesis block (height 0)');
     return false;
   }
   
@@ -29,9 +31,8 @@ export const validateChain = (
     const block = chain[i];
     const previousBlock = i > 0 ? chain[i - 1] : null;
     
-    // Skip validateBlock for genesis block (i=0) since we already verified it matches the expected genesis block
-    // For non-genesis blocks, validate using validateBlock
-    if (i > 0 && !validateBlock(block, previousBlock, tempUtxoSet)) {
+    // Skip validateBlock for genesis block (i=0) since we validate it differently
+    if (previousBlock && !validateBlock(block, previousBlock, tempUtxoSet)) {
       console.error(`Block at height ${block.header.height} is invalid`);
       return false;
     }
@@ -42,9 +43,10 @@ export const validateChain = (
       return false;
     }
     
-    // Update the temporary UTXO set
-    const allTransactions = chain.slice(0, i + 1).flatMap(b => b.transactions);
-    tempUtxoSet = rebuildUTXOSetFromTransactions(allTransactions);
+    // Incrementally update the UTXO set with this block's transactions
+    for (const transaction of block.transactions) {
+      tempUtxoSet = updateUTXOSet(tempUtxoSet, transaction);
+    }
   }
   
   return true;

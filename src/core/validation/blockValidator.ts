@@ -62,9 +62,9 @@ export const validateBlock = (
     console.error('Cannot validate a block without a previous block reference');
     return false;
   }
-  
-  if (header.previousHeaderHash !== previousBlock.hash) {
-    console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousBlock.hash}`);
+  const previousBlockHash = calculateBlockHeaderHash(previousBlock.header);
+  if (header.previousHeaderHash !== previousBlockHash) {
+    console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousBlockHash}`);
     return false;
   }
   
@@ -83,7 +83,7 @@ export const validateBlock = (
   }
   
   // 8. Validate block hash is below ceiling
-  const blockHash = block.hash || calculateBlockHeaderHash(header);
+  const blockHash = calculateBlockHeaderHash(header);
   if (!isHashBelowCeiling(blockHash, SimulatorConfig.CEILING)) {
     console.error(`Block hash is not below ceiling: ${blockHash}`);
     return false;
