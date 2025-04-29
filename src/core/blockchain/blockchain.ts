@@ -6,6 +6,7 @@ import { validateChain } from '../validation/chainValidator';
 
 /**
  * Blockchain class to manage the chain of blocks and UTXO set
+ * Implements core Nakamoto consensus mechanisms for chain selection and validation
  */
 export class Blockchain {
   private blocks: Block[] = [];
