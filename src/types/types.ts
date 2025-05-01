@@ -4,6 +4,7 @@
 
 export interface TransactionInput {
   sourceOutputId: string;  // Format: "{txid}-{idx}" or "REWARDER_NODE_ID" for coinbase
+  sourceNodeId?: string;   // Optional: ID of the node that created this output (for UI purposes)
 }
 
 export interface TransactionOutput {

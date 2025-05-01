@@ -9,7 +9,10 @@ export const createCoinbaseTransaction = (
   minerNodeId: string, 
   blockHeight: number
 ): Transaction => {
-  const inputs = [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }];
+  const inputs = [{ 
+    sourceOutputId: SimulatorConfig.REWARDER_NODE_ID,
+    sourceNodeId: SimulatorConfig.REWARDER_NODE_ID
+  }];
   const outputs = [{ 
     idx: 0, 
     nodeId: minerNodeId, 
@@ -38,7 +41,10 @@ export const createRedistributionTransaction = (
   const amountPerPeer = redistributionAmount / peerNodeIds.length;
   
   // Create input referencing the coinbase output
-  const inputs = [{ sourceOutputId: `${coinbaseTxid}-0` }];
+  const inputs = [{ 
+    sourceOutputId: `${coinbaseTxid}-0`,
+    sourceNodeId: minerNodeId // The miner is the source of the coinbase output
+  }];
   
   // Create outputs for each peer and change back to miner
   const outputs = [
