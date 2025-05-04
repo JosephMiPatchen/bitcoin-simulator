@@ -59,6 +59,9 @@ const App: React.FC = () => {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      
+      // Update node states one more time to ensure UI reflects stopped mining status
+      updateNodeStates();
     } else {
       // Start mining
       networkManagerRef.current.startAllMining();

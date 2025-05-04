@@ -352,7 +352,7 @@ Based on the requirements document, this implementation plan outlines a structur
    - Implement peer connection management
    - Create network topology for the 4 nodes
 
-## Phase 5: UI Implementation
+## Phase 5: BasicUI Implementation
 
 1. **Main Application Layout**
    - Create 4-panel layout for nodes
