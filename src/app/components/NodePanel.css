@@ -1,0 +1,498 @@
+.node-panel {
+  background-color: var(--panel-background);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.node-header h2 {
+  color: var(--primary-color);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.node-status {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.node-status.mining {
+  background-color: var(--primary-color);
+  color: #000;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.node-status.idle {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+/* Blockchain visualization */
+.blockchain-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.blockchain-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  position: relative;
+  flex-wrap: wrap;
+  padding: 5px 0;
+}
+
+.blockchain-row:not(:last-child)::after {
+  content: "";
+  display: none;
+}
+
+.block-item {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 10px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.block-item:not(:last-child):not(:nth-child(4n))::after {
+  content: "→";
+  position: absolute;
+  right: -17px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.block-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 8px rgba(247, 147, 26, 0.3);
+}
+
+.block-item.selected {
+  background-color: rgba(247, 147, 26, 0.2);
+  box-shadow: 0 0 10px rgba(247, 147, 26, 0.5);
+}
+
+.block-item.genesis-block {
+  background-color: var(--panel-background);
+  border: 2px solid var(--primary-color);
+  border-color: #ffd700;
+}
+
+.block-height {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.genesis-block .block-height {
+  color: #ffd700;
+}
+
+.block-hash {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: rgba(247, 147, 26, 0.2);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.genesis-block .block-hash {
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.block-validation {
+  margin-bottom: 4px;
+}
+
+.valid-block, .valid-hash {
+  color: var(--success-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.invalid-block, .invalid-hash {
+  color: var(--error-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.genesis-hash {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.genesis-text {
+  color: #ffd700;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 1px solid #ffd700;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.block-tx-count {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+/* Block modal */
+.block-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.block-modal {
+  background-color: var(--panel-background);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.block-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.block-modal-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: var(--primary-color);
+}
+
+.block-modal-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 70px);
+}
+
+.block-info {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.info-label {
+  color: var(--primary-color);
+  font-weight: bold;
+  min-width: 120px;
+}
+
+.hash-value {
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.transaction-item {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 15px;
+  border-left: 3px solid var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-id {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #ddd;
+  word-break: break-all;
+  max-width: 70%;
+}
+
+.tx-type {
+  background-color: var(--primary-color);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.tx-type.coinbase {
+  background-color: #ffd700;
+}
+
+/* Transaction flow visualization */
+.transaction-flow-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 20px;
+  align-items: center;
+  position: relative;
+  min-height: 200px;
+}
+
+.section-title {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tx-inputs-section, .tx-outputs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+}
+
+.tx-total-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  position: relative;
+  box-shadow: 0 0 15px rgba(247, 147, 26, 0.3);
+  border: 2px solid var(--primary-color);
+  z-index: 10;
+}
+
+.tx-total-value {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.tx-input, .tx-output {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 6px;
+  min-width: 120px;
+  position: relative;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-input:hover, .tx-output:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 8px rgba(247, 147, 26, 0.3);
+}
+
+.node-id {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.node-value {
+  font-size: 0.8rem;
+  color: #aaa;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.coinbase-input {
+  border: 1px solid #ffd700;
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.coinbase-input .node-id {
+  color: #ffd700;
+}
+
+/* Transaction header styling */
+.transaction-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-type {
+  background-color: var(--primary-color);
+  color: #000;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tx-type.coinbase {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.transaction-details-toggle {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  text-align: center;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+}
+
+.transaction-details-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.transaction-io {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+.transaction-inputs h5,
+.transaction-outputs h5 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.input-item,
+.output-item {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+.output-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.output-idx {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.output-value {
+  font-weight: bold;
+}
+
+.empty-list {
+  font-style: italic;
+  color: #aaa;
+  padding: 8px;
+}
+
+@media (max-width: 600px) {
+  .transaction-io {
+    grid-template-columns: 1fr;
+  }
+}

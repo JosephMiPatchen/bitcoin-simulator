@@ -1,0 +1,128 @@
+/* Transaction flow visualization */
+.transaction-item {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 3px solid var(--primary-color);
+  margin-bottom: 15px;
+}
+
+/* Transaction header styling */
+.transaction-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-type {
+  background-color: var(--primary-color);
+  color: #000;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tx-type.coinbase {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.transaction-flow-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 20px;
+  align-items: center;
+  position: relative;
+  min-height: 200px;
+}
+
+.section-title {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tx-inputs-section, .tx-outputs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+}
+
+.tx-total-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  position: relative;
+  box-shadow: 0 0 15px rgba(247, 147, 26, 0.3);
+  border: 2px solid var(--primary-color);
+  z-index: 10;
+}
+
+.tx-total-value {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.tx-input, .tx-output {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 6px;
+  min-width: 120px;
+  position: relative;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-input:hover, .tx-output:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 8px rgba(247, 147, 26, 0.3);
+}
+
+.node-id {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.node-value {
+  font-size: 0.8rem;
+  color: #aaa;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.coinbase-input {
+  border: 1px solid #ffd700;
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.coinbase-input .node-id {
+  color: #ffd700;
+}

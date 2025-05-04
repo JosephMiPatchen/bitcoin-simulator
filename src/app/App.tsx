@@ -1,45 +1,101 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { NetworkManager } from '../network/networkManager';
+import { NodeState } from '../types/types';
+import NodePanel from './components/NodePanel';
 import './App.css';
 
 const App: React.FC = () => {
+  // State for node states and mining status
+  const [nodeStates, setNodeStates] = useState<Record<string, NodeState>>({});
+  const [isMining, setIsMining] = useState<boolean>(false);
+  
+  // Reference to the network manager instance
+  const networkManagerRef = useRef<NetworkManager | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const heightIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Initialize the network on component mount
+  useEffect(() => {
+    // Create network manager
+    const networkManager = new NetworkManager();
+    networkManagerRef.current = networkManager;
+    
+    // Create a fully connected network with 4 nodes
+    networkManager.createFullyConnectedNetwork(4);
+    
+    // Update the UI with initial node states
+    updateNodeStates();
+    
+    // Start periodic height requests to help with convergence
+    heightIntervalRef.current = networkManager.startPeriodicHeightRequests(1000);
+    
+    // Cleanup on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (heightIntervalRef.current) {
+        clearInterval(heightIntervalRef.current);
+      }
+    };
+  }, []);
+  
+  // Function to update node states from the network manager
+  const updateNodeStates = () => {
+    if (networkManagerRef.current) {
+      const states = networkManagerRef.current.getNetworkState();
+      setNodeStates(states);
+    }
+  };
+  
+  // Function to toggle mining on all nodes
+  const handleToggleMining = () => {
+    if (!networkManagerRef.current) return;
+    
+    if (isMining) {
+      // Stop mining
+      networkManagerRef.current.stopAllMining();
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    } else {
+      // Start mining
+      networkManagerRef.current.startAllMining();
+      
+      // Set up interval to update UI
+      intervalRef.current = setInterval(() => {
+        updateNodeStates();
+      }, 500);
+    }
+    
+    setIsMining(!isMining);
+  };
+  
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>Bitcoin Simulator</h1>
-        <button className="mining-control">
-          Start Mining
+        <button 
+          className={`mining-control ${isMining ? 'mining' : ''}`}
+          onClick={handleToggleMining}
+        >
+          {isMining ? 'Stop Mining' : 'Start Mining'}
         </button>
       </header>
+      
       <main className="nodes-container">
-        <div className="node-placeholder">
-          <h2>Node 1</h2>
-          <p>Status: Idle</p>
-          <div className="blockchain-placeholder">
-            <p>Blockchain visualization will appear here</p>
-          </div>
-        </div>
-        <div className="node-placeholder">
-          <h2>Node 2</h2>
-          <p>Status: Idle</p>
-          <div className="blockchain-placeholder">
-            <p>Blockchain visualization will appear here</p>
-          </div>
-        </div>
-        <div className="node-placeholder">
-          <h2>Node 3</h2>
-          <p>Status: Idle</p>
-          <div className="blockchain-placeholder">
-            <p>Blockchain visualization will appear here</p>
-          </div>
-        </div>
-        <div className="node-placeholder">
-          <h2>Node 4</h2>
-          <p>Status: Idle</p>
-          <div className="blockchain-placeholder">
-            <p>Blockchain visualization will appear here</p>
-          </div>
-        </div>
+        {Object.entries(nodeStates).map(([nodeId, nodeState]) => (
+          <NodePanel 
+            key={nodeId} 
+            nodeState={nodeState}
+          />
+        ))}
       </main>
+      
+      <footer className="app-footer">
+        <p>Simple Bitcoin Simulator</p>
+      </footer>
     </div>
   );
 };
