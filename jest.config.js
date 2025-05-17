@@ -9,7 +9,11 @@ module.exports = {
   transform: {
     '^.+\.tsx?$': ['ts-jest', {
       tsconfig: 'tsconfig.jest.json'
-    }]
+    }],
+    '^.+\.jsx?$': 'babel-jest'
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@noble/secp256k1)/)',
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NodeState, Block } from '../../types/types';
 import { calculateBlockHeaderHash } from '../../core/validation/blockValidator';
-import { isHashBelowCeiling } from '../../utils/hashUtils';
+import { isHashBelowCeiling } from '../../utils/cryptoUtils';
 import { SimulatorConfig } from '../../config/config';
 import TransactionView from './TransactionView';
 import './NodePanel.css';

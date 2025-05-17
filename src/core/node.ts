@@ -1,6 +1,7 @@
-import { Block, NodeState } from '../types/types';
+import { Block, NodeState, PeerInfoMap } from '../types/types';
 import { Blockchain } from './blockchain/blockchain';
 import { Miner } from './mining/miner';
+import { generatePrivateKey, derivePublicKey, generateAddress } from '../utils/cryptoUtils';
 
 /**
  * Node class representing a full node in the Bitcoin network
@@ -10,7 +11,12 @@ export class Node {
   private nodeId: string;
   private blockchain: Blockchain;
   private miner: Miner;
-  private peerIds: string[] = [];
+  private peers: PeerInfoMap = {};
+  
+  // Security-related properties
+  private privateKey: string;
+  private publicKey: string;
+  private address: string;
   
   // Callbacks for network events
   private onBlockBroadcast?: (block: Block) => void;
@@ -18,21 +24,31 @@ export class Node {
   
   constructor(nodeId: string) {
     this.nodeId = nodeId;
+    
+    // Generate cryptographic keys and their derivatives for this node
+    this.privateKey = generatePrivateKey(nodeId);
+    this.publicKey = derivePublicKey(this.privateKey);
+    this.address = generateAddress(this.publicKey);
+    
     this.blockchain = new Blockchain(nodeId);
     
     // Initialize miner with callback for when a block is mined
     // Using .bind(this) ensures the handleMinedBlock method maintains the Node instance context
     // when called by the Miner. Without binding, 'this' would be undefined or refer to the wrong object
     // when the callback is executed, causing errors when accessing Node properties or methods.
-    this.miner = new Miner(nodeId, this.handleMinedBlock.bind(this));
+    this.miner = new Miner(
+      this.handleMinedBlock.bind(this),
+      this
+    );
   }
   
   /**
-   * Sets the peer IDs for this node
+   * Sets the peer information with addresses directly
+   * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeers(peerIds: string[]): void {
-    this.peerIds = [...peerIds];
-    this.miner.setPeerIds(peerIds);
+  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string } }): void {
+    // Set the peer information directly
+    this.peers = { ...peers };
   }
   
   /**
@@ -58,16 +74,18 @@ export class Node {
       blockchain: this.blockchain.getBlocks(),
       utxo: this.blockchain.getUTXOSet(),
       isMining: this.miner.getIsMining(),
-      peerIds: [...this.peerIds]
+      peerIds: Object.keys(this.peers),
+      publicKey: this.publicKey,
+      address: this.address
     };
   }
   
   /**
    * Starts mining a new block
    */
-  startMining(): void {
+  async startMining(): Promise<void> {
     const latestBlock = this.blockchain.getLatestBlock();
-    this.miner.startMining(latestBlock);
+    await this.miner.startMining(latestBlock);
   }
   
   /**
@@ -160,5 +178,43 @@ export class Node {
    */
   getBlocks(): Block[] {
     return this.blockchain.getBlocks();
+  }
+  
+  /**
+   * Gets the node's public key
+   */
+  getPublicKey(): string {
+    return this.publicKey;
+  }
+  
+  /**
+   * Gets the node's Bitcoin address
+   */
+  getAddress(): string {
+    return this.address;
+  }
+  
+  /**
+   * Gets the node's private key
+   * Note: In a real system, this would be kept private and never exposed
+   * It's only exposed here for the simulator's simplified implementation
+   * so the miner class can easily access it
+   */
+  getPrivateKey(): string {
+    return this.privateKey;
+  }
+  
+  /**
+   * Gets the node ID
+   */
+  getNodeId(): string {
+    return this.nodeId;
+  }
+  
+  /**
+   * Gets the peer information map
+   */
+  getPeerInfos(): PeerInfoMap {
+    return this.peers;
   }
 }

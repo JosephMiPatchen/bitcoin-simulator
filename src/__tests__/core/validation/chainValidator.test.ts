@@ -1,13 +1,62 @@
 import { validateChain } from '../../../core/validation/chainValidator';
 import { Block, BlockHeader, Transaction } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
-import { sha256Hash } from '../../../utils/hashUtils';
+
+// Mock noble-secp256k1 for ECDSA operations
+jest.mock('noble-secp256k1', () => ({
+  getPublicKey: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
+  sign: jest.fn().mockResolvedValue(new Uint8Array([4, 5, 6])),
+  verify: jest.fn().mockResolvedValue(true)
+}));
+
+// Mock noble-hashes
+jest.mock('@noble/hashes/sha256', () => ({
+  sha256: jest.fn().mockImplementation(() => new Uint8Array([7, 8, 9]))
+}));
+
+jest.mock('@noble/hashes/utils', () => ({
+  bytesToHex: jest.fn().mockReturnValue('test-hex'),
+  hexToBytes: jest.fn().mockReturnValue(new Uint8Array([10, 11, 12]))
+}));
+
+// Mock cryptoUtils
+jest.mock('../../../utils/cryptoUtils', () => ({
+  sha256Hash: jest.fn().mockImplementation(data => 'mock-hash-' + JSON.stringify(data).length),
+  isHashBelowCeiling: jest.fn().mockReturnValue(true),
+  generateAddress: jest.fn().mockReturnValue('test-address'),
+  derivePublicKey: jest.fn().mockReturnValue('test-public-key'),
+  generatePrivateKey: jest.fn().mockReturnValue('test-private-key'),
+  generateSignature: jest.fn().mockResolvedValue('test-signature'),
+  verifySignature: jest.fn().mockResolvedValue(true),
+  hexToBuffer: jest.fn().mockReturnValue(Buffer.from([1, 2, 3])),
+  bufferToHex: jest.fn().mockReturnValue('test-hex')
+}));
+
+// Update the SimulatorConfig mock to include GENESIS_BLOCK_HASH
+jest.mock('../../../config/config', () => ({
+  SimulatorConfig: {
+    BLOCK_REWARD: 10,
+    CEILING: '0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    NODE_COUNT: 4,
+    MIN_NETWORK_DELAY_MS: 100,
+    MAX_NETWORK_DELAY_MS: 1000,
+    HEIGHT_CHECK_INTERVAL_MS: 5000,
+    REDISTRIBUTION_RATIO: 0.5,
+    REWARDER_NODE_ID: 'REWARDER',
+    GENESIS_PREV_HASH: '0000000000000000000000000000000000000000000000000000000000000000',
+    GENESIS_BLOCK_HASH: '0000000000000000000000000000000000000000000000000000000000000001',
+    MINING_BATCH_SIZE: 1000,
+    UPDATE_INTERVAL_MS: 1000
+  }
+}));
 
 // Mock the isHashBelowCeiling function to always return true for tests
-jest.mock('../../../utils/hashUtils', () => {
-  const original = jest.requireActual('../../../utils/hashUtils');
+jest.mock('../../../utils/cryptoUtils', () => {
   return {
-    ...original,
+    sha256Hash: jest.fn().mockImplementation((data) => {
+      // Just return a simple hash for testing
+      return 'mocked-hash-' + JSON.stringify(data).length;
+    }),
     isHashBelowCeiling: jest.fn().mockReturnValue(true)
   };
 });
@@ -21,13 +70,15 @@ describe('Chain Validator', () => {
   ): Block => {
     const coinbaseTx: Transaction = {
       txid: `coinbase-tx-${height}`,
-      inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-      outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD }],
+      inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID, sourceNodeId: SimulatorConfig.REWARDER_NODE_ID }],
+      outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD, lock: 'test-address-1' }],
       timestamp
     };
     
     const transactions = [coinbaseTx];
-    // Use the same hash calculation as the actual code
+    // Create a hash for the block
+    // Use the mocked sha256Hash from cryptoUtils
+    const { sha256Hash } = require('../../../utils/cryptoUtils');
     const transactionHash = sha256Hash(transactions);
     
     const header: BlockHeader = {
@@ -39,14 +90,14 @@ describe('Chain Validator', () => {
       height
     };
     
-    // Calculate the actual hash from the header
-    const hash = sha256Hash(header);
-    
-    return {
+    // Set the hash based on the header
+    const block: Block = {
       header,
       transactions,
-      hash
+      hash: sha256Hash(header)
     };
+    
+    return block;
   };
   
   // Create a valid blockchain
@@ -54,7 +105,8 @@ describe('Chain Validator', () => {
     const chain: Block[] = [];
     
     // Create genesis block
-    const genesisBlock = createValidBlock(SimulatorConfig.GENESIS_BLOCK_HASH, 0, Date.now() - length * 10000);
+    const mockGenesisBlockHash = SimulatorConfig.GENESIS_PREV_HASH;
+    const genesisBlock = createValidBlock(mockGenesisBlockHash, 0, Date.now() - length * 10000);
     chain.push(genesisBlock);
     
     // Create subsequent blocks
@@ -71,64 +123,64 @@ describe('Chain Validator', () => {
     return chain;
   };
 
-  it('should validate a valid blockchain', () => {
+  it('should validate a valid blockchain', async () => {
     const chain = createValidChain(3); // Chain with 3 blocks
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(true);
   });
 
-  it('should validate a blockchain with only genesis block', () => {
+  it('should validate a blockchain with only genesis block', async () => {
     const chain = createValidChain(1); // Chain with just genesis block
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(true);
   });
 
-  it('should reject an empty blockchain', () => {
+  it('should reject an empty blockchain', async () => {
     const chain: Block[] = [];
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 
-  it('should reject a blockchain with invalid block height sequence', () => {
+  it('should reject a blockchain with invalid block height sequence', async () => {
     const chain = createValidChain(3);
     chain[1].header.height = 5; // Invalid height (should be 1)
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 
-  it('should reject a blockchain with invalid previous hash reference', () => {
+  it('should reject a blockchain with invalid previous hash reference', async () => {
     const chain = createValidChain(3);
     chain[2].header.previousHeaderHash = 'invalid-previous-hash'; // Breaks the chain
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 
-  it('should reject a blockchain with non-chronological timestamps', () => {
+  it('should reject a blockchain with non-chronological timestamps', async () => {
     const chain = createValidChain(3);
     chain[2].header.timestamp = chain[1].header.timestamp - 1000; // Earlier than previous block
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 
-  it('should reject a blockchain with invalid genesis block', () => {
+  it('should reject a blockchain with invalid genesis block', async () => {
     const chain = createValidChain(3);
     chain[0].header.previousHeaderHash = 'invalid-genesis-hash'; // Should be GENESIS_BLOCK_HASH
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 
-  it('should reject a blockchain with invalid genesis block height', () => {
+  it('should reject a blockchain with invalid genesis block height', async () => {
     const chain = createValidChain(3);
     chain[0].header.height = 1; // Genesis block should have height 0
     
-    const result = validateChain(chain);
+    const result = await validateChain(chain);
     expect(result).toBe(false);
   });
 });

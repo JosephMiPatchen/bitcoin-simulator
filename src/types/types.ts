@@ -5,12 +5,17 @@
 export interface TransactionInput {
   sourceOutputId: string;  // Format: "{txid}-{idx}" or "REWARDER_NODE_ID" for coinbase
   sourceNodeId?: string;   // Optional: ID of the node that created this output (for UI purposes)
+  key?: {                  // Data needed to verify ownership (not required for coinbase)
+    publicKey: string;     // Public key corresponding to the address in the lock
+    signature: string;     // Signature proving ownership
+  };
 }
 
 export interface TransactionOutput {
   idx: number;        // Position index in the outputs array
   nodeId: string;     // Recipient node identifier
   value: number;      // BTC amount
+  lock: string;       // Bitcoin address of recipient (hash of public key)
 }
 
 export interface Transaction {
@@ -45,6 +50,8 @@ export interface NodeState {
   utxo: UTXOSet;
   isMining: boolean;
   peerIds: string[];
+  publicKey: string;
+  address: string;
 }
 
 export interface NetworkMessage {
@@ -52,4 +59,19 @@ export interface NetworkMessage {
   payload: any;
   sender: string;
   recipient: string | 'broadcast';
+}
+
+/**
+ * Information about a peer node
+ */
+export interface PeerInfo {
+  address: string;
+  publicKey: string;
+}
+
+/**
+ * Map of node IDs to peer information
+ */
+export interface PeerInfoMap {
+  [nodeId: string]: PeerInfo; // Maps nodeId to peer information
 }

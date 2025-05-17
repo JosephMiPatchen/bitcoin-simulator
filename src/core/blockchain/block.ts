@@ -39,9 +39,18 @@ export const createBlockTemplate = (
  * This avoids circular dependencies with the transaction module
  */
 const createGenesisCoinbaseTransaction = (minerNodeId: string): Transaction => {
+  // Generate a deterministic address for the miner based on the node ID
+  // This is a simplified approach for the genesis block
+  const minerAddress = `address-${minerNodeId}`;
+  
   return {
     inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-    outputs: [{ idx: 0, nodeId: minerNodeId, value: SimulatorConfig.BLOCK_REWARD }],
+    outputs: [{ 
+      idx: 0, 
+      nodeId: minerNodeId, 
+      value: SimulatorConfig.BLOCK_REWARD,
+      lock: minerAddress // Add lock field for consistency with other transactions even tho this wont be verified
+    }],
     timestamp: Date.now(),
     txid: 'genesis-coinbase-transaction' // Simple fixed ID for genesis block
   };

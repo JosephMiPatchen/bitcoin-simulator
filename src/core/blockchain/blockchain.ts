@@ -62,7 +62,7 @@ export class Blockchain {
    * Returns true if the block was added, false otherwise
    * Note: This method should not be used for genesis blocks (height 0)
    */
-  addBlock(block: Block): boolean {
+  async addBlock(block: Block): Promise<boolean> {
     // Reject genesis blocks (height 0)
     if (block.header.height === 0) {
       console.error('Genesis blocks should be added directly, not through addBlock');
@@ -78,7 +78,22 @@ export class Blockchain {
     const previousBlock = this.blocks.length > 0 ? this.blocks[this.blocks.length - 1] : null;
     
     // Validate the block
-    if (!validateBlock(block, previousBlock, this.utxoSet)) {
+    if (!previousBlock) {
+      console.error('Cannot add block without a previous block');
+      return false;
+    }
+    
+    // Validate block height is sequential (exactly one more than the current chain height)
+    const expectedHeight = previousBlock.header.height + 1;
+    if (block.header.height !== expectedHeight) {
+      console.error(`Block height mismatch: expected ${expectedHeight}, got ${block.header.height}`);
+      return false;
+    }
+    
+    // Validate the block against the previous block's hash
+    const previousHash = previousBlock.hash || '';
+    const isValid = await validateBlock(block, this.utxoSet, previousHash);
+    if (!isValid) {
       return false;
     }
     
@@ -99,9 +114,10 @@ export class Blockchain {
    * Replaces the current chain with a new one if it's valid and longer
    * Returns true if the chain was replaced, false otherwise
    */
-  replaceChain(newBlocks: Block[]): boolean {
+  async replaceChain(newBlocks: Block[]): Promise<boolean> {
     // Validate the new chain
-    if (!this.isValidChain(newBlocks)) {
+    const isValid = await this.isValidChain(newBlocks);
+    if (!isValid) {
       return false;
     }
     
@@ -122,8 +138,8 @@ export class Blockchain {
   /**
    * Validates a chain of blocks
    */
-  private isValidChain(chain: Block[]): boolean {
-    return validateChain(chain);
+  private async isValidChain(chain: Block[]): Promise<boolean> {
+    return await validateChain(chain);
   }
   
   /**

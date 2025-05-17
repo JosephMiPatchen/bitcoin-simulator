@@ -1,6 +1,21 @@
 import { NetworkManager } from '../../network/networkManager';
 import { SimulatorConfig } from '../../config/config';
 
+// Mock all validation functions
+jest.mock('../../core/validation/securityValidator', () => ({
+  validateTransactionSecurity: jest.fn().mockResolvedValue(true)
+}));
+
+jest.mock('../../core/validation/transactionValidator', () => ({
+  validateTransaction: jest.fn().mockResolvedValue(true)
+}));
+
+jest.mock('../../core/validation/blockValidator', () => ({
+  validateBlock: jest.fn().mockResolvedValue(true),
+  calculateBlockHeaderHash: jest.fn().mockReturnValue('mock-block-hash'),
+  calculateTransactionHash: jest.fn().mockReturnValue('mock-tx-hash')
+}));
+
 describe('Network Communication', () => {
   // Use a shorter network delay for faster tests
   SimulatorConfig.MIN_NETWORK_DELAY_MS = 0;
@@ -82,7 +97,7 @@ describe('Network Communication', () => {
         transactions: [{
           txid: 'mock-coinbase-tx',
           inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-          outputs: [{ idx: 0, nodeId: node1Id, value: SimulatorConfig.BLOCK_REWARD }],
+          outputs: [{ idx: 0, nodeId: node1Id, value: SimulatorConfig.BLOCK_REWARD, lock: 'mock-lock' }],
           timestamp: Date.now()
         }],
         hash: 'mock-block-hash'

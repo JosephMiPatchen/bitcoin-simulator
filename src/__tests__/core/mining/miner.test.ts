@@ -1,17 +1,36 @@
 import { Miner } from '../../../core/mining/miner';
+import { PeerInfoMap } from '../../../types/types';
+import { Node } from '../../../core/node';
 import { Block } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
 
 describe('Miner Module', () => {
   let miner: Miner;
+  let mockNode: Node;
   const nodeId = 'test-node';
   const peerIds = ['peer1', 'peer2', 'peer3'];
   let blockMinedCallback: jest.Mock;
   
+  // Mock peer infos
+  const mockPeers: PeerInfoMap = {
+    'peer1': { address: 'address1', publicKey: 'pubkey1' },
+    'peer2': { address: 'address2', publicKey: 'pubkey2' },
+    'peer3': { address: 'address3', publicKey: 'pubkey3' }
+  };
+  
   beforeEach(() => {
     blockMinedCallback = jest.fn();
-    miner = new Miner(nodeId, blockMinedCallback);
-    miner.setPeerIds(peerIds);
+    
+    // Create a mock Node with the necessary methods
+    mockNode = {
+      getPrivateKey: jest.fn().mockReturnValue('0000000000000000000000000000000000000000000000000000000000000001'),
+      getPublicKey: jest.fn().mockReturnValue('mock-public-key'),
+      getAddress: jest.fn().mockReturnValue('mock-address'),
+      getNodeId: jest.fn().mockReturnValue(nodeId),
+      getPeerInfos: jest.fn().mockReturnValue(mockPeers)
+    } as unknown as Node;
+    
+    miner = new Miner(blockMinedCallback, mockNode);
     
     // Mock the hash calculation to make mining deterministic
     jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
@@ -28,9 +47,9 @@ describe('Miner Module', () => {
   });
   
   describe('createBlockTransactions', () => {
-    it('should create a coinbase transaction and redistribution transaction', () => {
+    it('should create a coinbase transaction and redistribution transaction', async () => {
       const height = 1;
-      const transactions = (miner as any).createBlockTransactions(height);
+      const transactions = await (miner as any).createBlockTransactions(height);
       
       // Should have 2 transactions
       expect(transactions.length).toBe(2);
@@ -65,7 +84,13 @@ describe('Miner Module', () => {
   });
   
   describe('startMining', () => {
-    it('should start the mining process', () => {
+    it('should start the mining process', async () => {
+      // Mock createBlockTransactions to return a fixed result
+      jest.spyOn(miner as any, 'createBlockTransactions').mockResolvedValue([
+        { txid: 'mock-coinbase-txid', inputs: [], outputs: [] },
+        { txid: 'mock-redistribution-txid', inputs: [], outputs: [] }
+      ]);
+      
       // Mock the mining process to avoid actual computation
       jest.spyOn(miner as any, 'mineBlock').mockImplementation(() => {});
       
@@ -83,13 +108,13 @@ describe('Miner Module', () => {
         hash: 'test-hash'
       };
       
-      miner.startMining(previousBlock);
+      await miner.startMining(previousBlock);
       
       expect(miner.getIsMining()).toBe(true);
       expect((miner as any).mineBlock).toHaveBeenCalled();
     });
     
-    it('should not start mining if already mining', () => {
+    it('should not start mining if already mining', async () => {
       // Mock the mining process to avoid actual computation
       jest.spyOn(miner as any, 'mineBlock').mockImplementation(() => {});
       
@@ -107,14 +132,11 @@ describe('Miner Module', () => {
         hash: 'test-hash'
       };
       
-      // Start mining once
-      miner.startMining(previousBlock);
-      
-      // Reset the mock to check if it's called again
-      ((miner as any).mineBlock as jest.Mock).mockClear();
+      // Set mining to true
+      (miner as any).isMining = true;
       
       // Try to start mining again
-      miner.startMining(previousBlock);
+      await miner.startMining(previousBlock);
       
       // Should not call mineBlock again
       expect((miner as any).mineBlock).not.toHaveBeenCalled();
@@ -194,7 +216,7 @@ describe('Miner Module', () => {
         .mockReturnValue(validHash);
       
       // Mock isHashBelowCeiling to return true
-      jest.spyOn(require('../../../utils/hashUtils'), 'isHashBelowCeiling')
+      jest.spyOn(require('../../../utils/cryptoUtils'), 'isHashBelowCeiling')
         .mockReturnValue(true);
       
       // Create a mock block
@@ -233,12 +255,8 @@ describe('Miner Module', () => {
         return 0 as any;
       });
       
-      // Mock calculateBlockHeaderHash
-      jest.spyOn(require('../../../core/validation/blockValidator'), 'calculateBlockHeaderHash')
-        .mockReturnValue('test-hash');
-      
       // Mock isHashBelowCeiling to return false (no valid hash found)
-      jest.spyOn(require('../../../utils/hashUtils'), 'isHashBelowCeiling')
+      jest.spyOn(require('../../../utils/cryptoUtils'), 'isHashBelowCeiling')
         .mockReturnValue(false);
       
       // Create a mock block with a different previous hash than expected
@@ -258,13 +276,13 @@ describe('Miner Module', () => {
       (miner as any).isMining = true;
       
       // Spy on stopMining
-      jest.spyOn(miner, 'stopMining');
+      const stopMiningSpy = jest.spyOn(miner, 'stopMining');
       
       // Mine the block with a different expected previous hash
       (miner as any).mineBlock(block, 'expected-previous-hash');
       
       // Should have called stopMining
-      expect(miner.stopMining).toHaveBeenCalled();
+      expect(stopMiningSpy).toHaveBeenCalled();
       
       // Restore mocks
       jest.restoreAllMocks();

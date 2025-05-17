@@ -3,8 +3,6 @@
 ## Overview 
 The goal of this document is to lay out the requirements for a bitcoin simulator. The purpose of this simulator is to implement Nakamoto consensus in its simplest form. After looking at what's available on the internet, there is no simple implementation that a developer could read in one sitting to understand the core of what Bitcoin's consensus algorithm does, and why it works. 
 
-For P0, we will not worry about security of transactions, we will simply use node ID in place of address with no cryptographic security to prevent one node from spending BTC of another node. To simplify the implementation, we won't use a mempool for transaction selection. Instead, each miner will act like a "Robin Hood" - creating transactions that evenly distribute a portion of its coinbase reward to peer nodes. This approach keeps our simulator focused on the core consensus mechanism while still demonstrating transaction processing.
-
 ## Tech Stack
 To implement this, we will create a React app in TypeScript and utilize web workers to simulate nodes' independent execution. We will use a mesh network and implement the most simple communication protocol across the web workers to implement the bitcoin simulator. To be clear, 1 web worker = 1 full node.
 

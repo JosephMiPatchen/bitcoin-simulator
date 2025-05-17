@@ -1,7 +1,7 @@
 import { createGenesisBlock, createBlockTemplate } from '../../../core/blockchain/block';
 import { Block, Transaction } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
-import { sha256Hash } from '../../../utils/hashUtils';
+import { sha256Hash } from '../../../utils/cryptoUtils';
 
 describe('Block Module', () => {
   describe('createGenesisBlock', () => {
@@ -45,15 +45,17 @@ describe('Block Module', () => {
       {
         txid: 'mock-tx-1',
         inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD }],
+        outputs: [
+          { idx: 0, nodeId: 'miner1', value: SimulatorConfig.BLOCK_REWARD, lock: 'test-address-1' }
+        ],
         timestamp: Date.now()
       },
       {
         txid: 'mock-tx-2',
         inputs: [{ sourceOutputId: 'some-utxo-id' }],
         outputs: [
-          { idx: 0, nodeId: 'node2', value: 2 },
-          { idx: 1, nodeId: 'node1', value: 2 }
+          { idx: 0, nodeId: 'miner1', value: 5, lock: 'test-address-1' },
+          { idx: 1, nodeId: 'peer1', value: 5, lock: 'test-address-2' }
         ],
         timestamp: Date.now()
       }

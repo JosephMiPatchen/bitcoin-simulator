@@ -37,40 +37,37 @@ export class NetworkManager {
     return nodeWorker;
   }
   
-  /**
-   * Adds an existing node to the network
-   * Primarily used for testing and network merging
-   */
-  addNode(nodeId: string, nodeWorker: NodeWorker): void {
-    // Set up message handling
-    nodeWorker.setOnOutgoingMessage(this.routeMessageFromNode.bind(this));
-    
-    // Add the node to the network
-    this.nodesMap.set(nodeId, nodeWorker);
-  }
+
   
   /**
    * Sets up the network topology
-   * Defines which nodes are connected to each other
+   * Defines which nodes are connected to each other and shares address information
    * This allows for creating various network structures (mesh, ring, star, etc.)
    */
   setupNetworkTopology(topology: Map<string, string[]>): void {
     this.networkTopology = new Map(topology);
     
-    // Set peers for each node
+    // First collect all node addresses
+    const addressMap: { [nodeId: string]: string } = {};
+    for (const [nodeId, nodeWorker] of this.nodesMap.entries()) {
+      addressMap[nodeId] = nodeWorker.getNodeAddress();
+    }
+    
+    // Set peer information with addresses for each node
     for (const [nodeId, peerIds] of this.networkTopology.entries()) {
       const node = this.nodesMap.get(nodeId);
       if (node) {
-        node.setPeers(peerIds);
+        // Create peer objects with addresses
+        const peers: { [peerId: string]: { address: string } } = {};
+        peerIds.forEach(peerId => {
+          peers[peerId] = { address: addressMap[peerId] };
+        });
+        
+        // Set complete peer info directly
+        node.setPeerInfosWithAddresses(peers);
       }
     }
   }
-  
-  /**
-   * Creates a fully connected mesh network with the specified number of nodes
-   * In a mesh topology, every node is directly connected to every other node
-   * This provides maximum redundancy and multiple paths for message propagation
-   */
   /**
    * Creates a fully connected mesh network with the specified number of nodes
    * In a mesh topology, every node is directly connected to every other node

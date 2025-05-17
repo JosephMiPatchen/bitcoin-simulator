@@ -96,7 +96,3 @@ export const rebuildUTXOSetFromTransactions = (transactions: Transaction[]): UTX
 export const rebuildUTXOSet = (transactions: Transaction[]): UTXOSet => {
   return rebuildUTXOSetFromTransactions(transactions);
 };
-
-// Note: Functions for getting node UTXOs and calculating node balance have been removed
-// to keep the core implementation as simple as possible.
-// If needed in the future, these can be implemented in the UI layer or added back to the core.

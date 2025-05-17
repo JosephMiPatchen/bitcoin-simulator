@@ -9,7 +9,13 @@ describe('Node Module', () => {
   
   beforeEach(() => {
     node = new Node(nodeId);
-    node.setPeers(peerIds);
+    
+    // Create peers with addresses
+    const peers: { [peerId: string]: { address: string } } = {};
+    peerIds.forEach(peerId => {
+      peers[peerId] = { address: `address-${peerId}` };
+    });
+    node.setPeerInfosWithAddresses(peers);
     
     // Mock the hash calculation to make mining deterministic
     jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
@@ -147,6 +153,9 @@ describe('Node Module', () => {
     });
     
     it('should not replace its chain with an invalid chain', () => {
+      // Mock console.error to suppress expected error message
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
       // Create an invalid chain
       const invalidChain: Block[] = [
         {
@@ -191,6 +200,9 @@ describe('Node Module', () => {
       
       // Should not call the callback
       expect(chainUpdatedCallback).not.toHaveBeenCalled();
+
+      // Restore console.error
+      console.error = originalConsoleError;
     });
   });
   

@@ -68,11 +68,21 @@ export class NodeWorker {
   }
   
   /**
-   * Sets the peer IDs for this node
+   * Sets the peer information with addresses directly
+   * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeers(peerIds: string[]): void {
-    this._node.setPeers(peerIds);
+  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string } }): void {
+    this._node.setPeerInfosWithAddresses(peers);
   }
+  
+  /**
+   * Gets the Bitcoin address of this node
+   */
+  getNodeAddress(): string {
+    return this._node.getAddress();
+  }
+  
+
   
   /**
    * Starts mining on this node
@@ -228,7 +238,8 @@ export class NodeWorker {
    * Requests the blockchain height from all peers
    */
   requestHeightFromPeers(): void {
-    const peerIds = this._node.getState().peerIds;
+    // Get peer IDs from the peer information map
+    const peerIds = Object.keys(this._node.getPeerInfos());
     
     // Request height from each peer
     for (const peerId of peerIds) {

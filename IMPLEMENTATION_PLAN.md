@@ -401,6 +401,9 @@ Based on the requirements document, this implementation plan outlines a structur
    - Improve UI rendering performance
    - Fine-tune network communication
 
+## Phase 6: Secruity
+refer to SECURITY_SCHEME.md
+
 ## Implementation Priorities
 
 1. **First Priority**: Core blockchain data structures and operations

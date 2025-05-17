@@ -1,6 +1,11 @@
-import { validateTransaction, calculateTxid } from '../../../core/validation/transactionValidator';
+import { calculateTxid, validateTransaction } from '../../../core/validation/transactionValidator';
 import { Transaction, TransactionInput, TransactionOutput } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
+
+// Mock security validator
+jest.mock('../../../core/validation/securityValidator', () => ({
+  validateTransactionSecurity: jest.fn().mockResolvedValue(true)
+}));
 
 describe('Transaction Validator', () => {
   // Mock UTXO set for testing
@@ -8,12 +13,14 @@ describe('Transaction Validator', () => {
     'tx1-0': {
       idx: 0,
       nodeId: 'node1',
-      value: 10
+      value: 10,
+      lock: 'test-lock-1'
     },
     'tx2-0': {
       idx: 0,
       nodeId: 'node2',
-      value: 5
+      value: 5,
+      lock: 'test-lock-2'
     }
   };
 
@@ -21,8 +28,8 @@ describe('Transaction Validator', () => {
     it('should generate a consistent transaction ID for the same inputs', () => {
       const inputs: TransactionInput[] = [{ sourceOutputId: 'tx1-0' }];
       const outputs: TransactionOutput[] = [
-        { idx: 0, nodeId: 'node2', value: 5 },
-        { idx: 1, nodeId: 'node1', value: 5 }
+        { idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' },
+        { idx: 1, nodeId: 'node1', value: 5, lock: 'test-lock-1' }
       ];
       const blockHeight = 1;
 
@@ -36,8 +43,8 @@ describe('Transaction Validator', () => {
       const inputs1: TransactionInput[] = [{ sourceOutputId: 'tx1-0' }];
       const inputs2: TransactionInput[] = [{ sourceOutputId: 'tx2-0' }];
       const outputs: TransactionOutput[] = [
-        { idx: 0, nodeId: 'node2', value: 5 },
-        { idx: 1, nodeId: 'node1', value: 5 }
+        { idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' },
+        { idx: 1, nodeId: 'node1', value: 5, lock: 'test-lock-1' }
       ];
       const blockHeight = 1;
 
@@ -50,8 +57,8 @@ describe('Transaction Validator', () => {
     it('should generate different IDs for different block heights', () => {
       const inputs: TransactionInput[] = [{ sourceOutputId: 'tx1-0' }];
       const outputs: TransactionOutput[] = [
-        { idx: 0, nodeId: 'node2', value: 5 },
-        { idx: 1, nodeId: 'node1', value: 5 }
+        { idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' },
+        { idx: 1, nodeId: 'node1', value: 5, lock: 'test-lock-1' }
       ];
 
       const txid1 = calculateTxid(inputs, outputs, 1);
@@ -63,119 +70,118 @@ describe('Transaction Validator', () => {
 
   describe('validateTransaction', () => {
     // Test for coinbase transactions
-    it('should validate a valid coinbase transaction', () => {
+    it('should validate a valid coinbase transaction', async () => {
       const coinbaseTx: Transaction = {
         inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD }],
+        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD, lock: 'test-lock-1' }],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
+      const result = await validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
       expect(result).toBe(true);
     });
 
-    it('should reject a coinbase transaction with invalid reward', () => {
+    it('should reject a coinbase transaction with invalid reward', async () => {
       const coinbaseTx: Transaction = {
         inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
-        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD + 1 }], // Invalid reward
+        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD + 1, lock: 'test-lock-1' }], // Invalid reward
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
+      const result = await validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
       expect(result).toBe(false);
     });
 
-    it('should reject a coinbase transaction with multiple inputs', () => {
+    it('should reject a coinbase transaction with multiple inputs', async () => {
       const coinbaseTx: Transaction = {
         inputs: [
           { sourceOutputId: SimulatorConfig.REWARDER_NODE_ID },
           { sourceOutputId: 'tx1-0' } // Invalid second input
         ],
-        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD }],
+        outputs: [{ idx: 0, nodeId: 'node1', value: SimulatorConfig.BLOCK_REWARD, lock: 'test-lock-1' }],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
+      const result = await validateTransaction(coinbaseTx, mockUtxoSet, 1, true);
       expect(result).toBe(false);
     });
 
     // Test for regular transactions
-    it('should validate a valid regular transaction', () => {
+    it('should validate a valid regular transaction', async () => {
       const tx: Transaction = {
         inputs: [{ sourceOutputId: 'tx1-0' }], // 10 BTC input
         outputs: [
-          { idx: 0, nodeId: 'node2', value: 6 },
-          { idx: 1, nodeId: 'node1', value: 4 }
+          { idx: 0, nodeId: 'node2', value: 6, lock: 'test-lock-2' },
+          { idx: 1, nodeId: 'node1', value: 4, lock: 'test-lock-1' }
         ],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, 1);
+      const result = await validateTransaction(tx, mockUtxoSet, 1);
       expect(result).toBe(true);
     });
 
-    it('should reject a transaction with inputs not in UTXO set', () => {
+    it('should reject a transaction with inputs not in UTXO set', async () => {
       const tx: Transaction = {
         inputs: [{ sourceOutputId: 'nonexistent-0' }],
-        outputs: [{ idx: 0, nodeId: 'node2', value: 5 }],
+        outputs: [{ idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' }],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, 1);
+      const result = await validateTransaction(tx, mockUtxoSet, 1);
       expect(result).toBe(false);
     });
 
-    it('should reject a transaction with outputs exceeding inputs', () => {
+    it('should reject a transaction with outputs exceeding inputs', async () => {
       const tx: Transaction = {
         inputs: [{ sourceOutputId: 'tx1-0' }], // 10 BTC input
         outputs: [
-          { idx: 0, nodeId: 'node2', value: 6 },
-          { idx: 1, nodeId: 'node1', value: 5 } // Total: 11 BTC, exceeds input
+          { idx: 0, nodeId: 'node2', value: 6, lock: 'test-lock-2' },
+          { idx: 1, nodeId: 'node1', value: 5, lock: 'test-lock-1' } // Total: 11 BTC, exceeds input
         ],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, 1);
+      const result = await validateTransaction(tx, mockUtxoSet, 1);
       expect(result).toBe(false);
     });
 
-    it('should reject a transaction with non-positive output values', () => {
+    it('should reject a transaction with non-positive output values', async () => {
       const tx: Transaction = {
         inputs: [{ sourceOutputId: 'tx1-0' }],
         outputs: [
-          { idx: 0, nodeId: 'node2', value: 0 }, // Zero value
-          { idx: 1, nodeId: 'node1', value: 10 }
+          { idx: 0, nodeId: 'node2', value: 0, lock: 'test-lock-2' }, // Zero value
+          { idx: 1, nodeId: 'node1', value: 10, lock: 'test-lock-1' }
         ],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, 1);
+      const result = await validateTransaction(tx, mockUtxoSet, 1);
       expect(result).toBe(false);
     });
 
-    it('should reject a transaction with non-sequential output indices', () => {
+    it('should reject a transaction with non-sequential output indices', async () => {
       const tx: Transaction = {
         inputs: [{ sourceOutputId: 'tx1-0' }],
         outputs: [
-          { idx: 0, nodeId: 'node2', value: 5 },
-          { idx: 2, nodeId: 'node1', value: 5 } // Index should be 1
+          { idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' },
+          { idx: 2, nodeId: 'node1', value: 5, lock: 'test-lock-1' } // Index should be 1
         ],
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, 1);
+      const result = await validateTransaction(tx, mockUtxoSet, 1);
       expect(result).toBe(false);
     });
 
-    it('should reject a transaction with incorrect txid', () => {
+    it('should reject a transaction with incorrect txid', async () => {
       const inputs = [{ sourceOutputId: 'tx1-0' }];
       const outputs = [
-        { idx: 0, nodeId: 'node2', value: 5 },
-        { idx: 1, nodeId: 'node1', value: 5 }
+        { idx: 0, nodeId: 'node2', value: 5, lock: 'test-lock-2' },
+        { idx: 1, nodeId: 'node1', value: 5, lock: 'test-lock-1' }
       ];
       const blockHeight = 1;
       
-      const correctTxid = calculateTxid(inputs, outputs, blockHeight);
       
       const tx: Transaction = {
         inputs,
@@ -184,7 +190,7 @@ describe('Transaction Validator', () => {
         timestamp: Date.now()
       };
 
-      const result = validateTransaction(tx, mockUtxoSet, blockHeight);
+      const result = await validateTransaction(tx, mockUtxoSet, blockHeight);
       expect(result).toBe(false);
     });
   });

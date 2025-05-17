@@ -1,35 +1,57 @@
-import { Block, Transaction } from '../../types/types';
+import { Block, Transaction, PeerInfoMap, BlockHeader } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
 import { 
   createCoinbaseTransaction, 
   createRedistributionTransaction 
 } from '../blockchain/transaction';
-import { createBlockTemplate } from '../blockchain/block';
 import { calculateBlockHeaderHash } from '../validation/blockValidator';
-import { isHashBelowCeiling } from '../../utils/hashUtils';
+import { isHashBelowCeiling, sha256Hash } from '../../utils/cryptoUtils';
+import { Node } from '../node';
 
 /**
  * Miner class responsible for creating and mining new blocks
  */
+
 export class Miner {
   private isMining: boolean = false;
-  private nodeId: string;
-  private peerIds: string[] = [];
   private onBlockMined: (block: Block) => void;
+  private node: Node;
   
   constructor(
-    nodeId: string, 
-    onBlockMined: (block: Block) => void
+    onBlockMined: (block: Block) => void,
+    node: Node
   ) {
-    this.nodeId = nodeId;
     this.onBlockMined = onBlockMined;
+    this.node = node;
   }
   
   /**
-   * Sets the peer IDs for this miner
+   * Gets the node ID
    */
-  setPeerIds(peerIds: string[]): void {
-    this.peerIds = [...peerIds];
+  private get nodeId(): string {
+    return this.node.getNodeId();
+  }
+  
+  /**
+   * Gets the peer information map
+   */
+  get peers(): PeerInfoMap {
+    return this.node.getPeerInfos();
+  }
+  
+  /**
+   * Gets peers with valid addresses
+   * @returns PeerInfoMap containing only peers with valid addresses
+   */
+  private getValidPeers(): PeerInfoMap {
+    const peers = this.peers;
+    return Object.entries(peers).reduce((validPeers, [peerId, info]) => {
+      // Only include peers that have a defined non-empty address
+      if (info?.address !== undefined && info.address !== '') {
+        validPeers[peerId] = { address: info.address };
+      }
+      return validPeers;
+    }, {} as PeerInfoMap);
   }
   
   /**
@@ -41,18 +63,37 @@ export class Miner {
   
   /**
    * Creates transactions for a new block
+   * @param height Block height
+   * @returns Promise resolving to array of transactions for the block
    */
-  private createBlockTransactions(height: number): Transaction[] {
+  async createBlockTransactions(height: number): Promise<Transaction[]> {
+    
     // Create coinbase transaction
-    const coinbaseTransaction = createCoinbaseTransaction(this.nodeId, height);
+    const coinbaseTransaction = createCoinbaseTransaction(
+      this.nodeId, 
+      height,
+      this.node.getAddress() // for lock on the output
+    );
     
     // If we have peers, create a redistribution transaction
-    if (this.peerIds.length > 0 && coinbaseTransaction.txid) {
-      const redistributionTransaction = createRedistributionTransaction(
+    if (coinbaseTransaction.txid) {
+      // Get peers with valid addresses
+      const validPeers = this.getValidPeers();
+      
+      if (Object.keys(validPeers).length === 0) {
+        console.warn('No peers with valid addresses available for redistribution');
+        return [coinbaseTransaction];
+      }
+      
+      // Create redistribution transaction - await the async function
+      const redistributionTransaction = await createRedistributionTransaction(
         coinbaseTransaction.txid,
         this.nodeId,
-        this.peerIds,
-        height
+        height,
+        this.node.getPrivateKey(),
+        this.node.getPublicKey(),
+        this.node.getAddress(),
+        validPeers
       );
       
       return [coinbaseTransaction, redistributionTransaction];
@@ -64,26 +105,43 @@ export class Miner {
   
   /**
    * Starts mining a new block
+   * @param previousHeaderHash Hash of the previous block header
+   * @param height Height of the new block
    */
-  startMining(previousBlock: Block): void {
+  async startMining(previousBlock: Block): Promise<void> {
+    const previousHeaderHash = previousBlock.hash!;
+    const height = previousBlock.header.height + 1;
     // Don't start if already mining
     if (this.isMining) return;
     
     this.isMining = true;
     
-    // Create transactions for the new block
-    const height = previousBlock.header.height + 1;
-    const transactions = this.createBlockTransactions(height);
-    
-    // Create a block template
-    const block = createBlockTemplate(previousBlock, transactions);
-    
-    // Set an initial random nonce (Bitcoin uses a 32-bit nonce)
-    // 0xFFFFFFFF = 4,294,967,295 (2^32 - 1)
-    block.header.nonce = Math.floor(Math.random() * 0xFFFFFFFF);
-    
-    // Start the mining process
-    this.mineBlock(block, previousBlock.hash!);
+    try {
+      // Create transactions for the block - await the async function
+      const transactions = await this.createBlockTransactions(height);
+      
+      // Create the block header
+      const header: BlockHeader = {
+        transactionHash: sha256Hash(JSON.stringify(transactions)),
+        timestamp: Date.now(),
+        previousHeaderHash,
+        ceiling: parseInt(SimulatorConfig.CEILING, 16), // Convert hex ceiling to number
+        nonce: 0,
+        height
+      };
+      
+      // Create the block
+      const block: Block = {
+        header,
+        transactions
+      };
+      
+      // Start mining the block
+      this.mineBlock(block, previousHeaderHash);
+    } catch (error) {
+      console.error('Error creating transactions for mining:', error);
+      this.isMining = false;
+    }
   }
   
   /**
@@ -103,7 +161,7 @@ export class Miner {
       if (!this.isMining) return;
       
       // Perform a batch of mining attempts
-      const batchSize = SimulatorConfig.MINING_BATCH_SIZE || 1000;
+      const batchSize = SimulatorConfig.MINING_BATCH_SIZE;
       let found = false;
       
       for (let i = 0; i < batchSize; i++) {
