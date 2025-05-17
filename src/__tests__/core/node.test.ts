@@ -1,4 +1,20 @@
 import { Node } from '../../core/node';
+
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
 import { Block } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
 

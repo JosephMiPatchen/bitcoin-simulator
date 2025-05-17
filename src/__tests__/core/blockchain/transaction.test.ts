@@ -2,6 +2,22 @@ import { createCoinbaseTransaction, createRedistributionTransaction } from '../.
 import { SimulatorConfig } from '../../../config/config';
 import { PeerInfoMap } from '../../../types/types';
 
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
+
 // Mock noble-secp256k1 for ECDSA operations
 jest.mock('noble-secp256k1', () => ({
   getPublicKey: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
@@ -26,7 +42,12 @@ jest.mock('../../../utils/cryptoUtils', () => ({
   generateAddress: jest.fn().mockReturnValue('mock-address'),
   derivePublicKey: jest.fn().mockReturnValue('mock-public-key'),
   generatePrivateKey: jest.fn().mockReturnValue('mock-private-key'),
-  sha256Hash: jest.fn().mockImplementation(data => 'mock-hash-' + JSON.stringify(data).length),
+  sha256Hash: jest.fn().mockImplementation(data => {
+    // Create a unique mock hash based on block height and other data
+    const { inputs, outputs, blockHeight } = data;
+    const uniqueKey = `${blockHeight}-${inputs[0].sourceOutputId}-${outputs[0].nodeId}`;
+    return 'mock-hash-' + uniqueKey;
+  }),
   hexToBuffer: jest.fn().mockReturnValue(Buffer.from([1, 2, 3])),
   bufferToHex: jest.fn().mockReturnValue('mock-hex')
 }));

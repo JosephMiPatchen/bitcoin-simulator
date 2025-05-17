@@ -30,6 +30,12 @@ export const validateChain = async (chain: Block[]): Promise<boolean> => {
     console.error('Genesis block has invalid previous hash');
     return false;
   }
+
+  // Verify genesis block has correct hash
+  if (chain[0].hash !== SimulatorConfig.GENESIS_BLOCK_HASH) {
+    console.error('Genesis block has invalid hash');
+    return false;
+  }
   
   // Validate each block in the chain
   let tempUtxoSet: UTXOSet = {};
@@ -44,19 +50,27 @@ export const validateChain = async (chain: Block[]): Promise<boolean> => {
       return false;
     }
 
-    // Skip validateBlock for genesis block (i=0) since we validate it differently
-    if (previousBlock) {
-      const previousHash = previousBlock.hash || '';
-      const isValid = await validateBlock(block, tempUtxoSet, previousHash);
-      if (!isValid) {
-        console.error(`Block at height ${block.header.height} is invalid`);
-        return false;
+    // Special validation for genesis block
+    if (i === 0) {
+      // Genesis block validation is already done above
+      // Just update the UTXO set with its transactions
+      for (const transaction of block.transactions) {
+        tempUtxoSet = updateUTXOSet(tempUtxoSet, transaction);
       }
+      continue;
+    }
+
+    // For non-genesis blocks, validate against the previous block
+    const previousHash = previousBlock!.hash || '';
+    const isValid = await validateBlock(block, tempUtxoSet, previousHash);
+    if (!isValid) {
+      console.error(`Block at height ${block.header.height} is invalid`);
+      return false;
     }
     
     // Check for chronological timestamps
-    if (previousBlock && block.header.timestamp < previousBlock.header.timestamp) {
-      console.error(`Block timestamp is not chronological: ${block.header.timestamp} < ${previousBlock.header.timestamp}`);
+    if (block.header.timestamp < previousBlock!.header.timestamp) {
+      console.error(`Block timestamp is not chronological: ${block.header.timestamp} < ${previousBlock!.header.timestamp}`);
       return false;
     }
     

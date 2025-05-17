@@ -1,6 +1,23 @@
 import { validateChain } from '../../../core/validation/chainValidator';
 import { Block, BlockHeader, Transaction } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
+import { sha256Hash } from '../../../utils/cryptoUtils';
+
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
 
 // Mock noble-secp256k1 for ECDSA operations
 jest.mock('noble-secp256k1', () => ({
@@ -21,7 +38,10 @@ jest.mock('@noble/hashes/utils', () => ({
 
 // Mock cryptoUtils
 jest.mock('../../../utils/cryptoUtils', () => ({
-  sha256Hash: jest.fn().mockImplementation(data => 'mock-hash-' + JSON.stringify(data).length),
+  sha256Hash: jest.fn().mockImplementation((data) => {
+    // Just return a simple hash for testing
+    return 'mocked-hash-' + JSON.stringify(data).length;
+  }),
   isHashBelowCeiling: jest.fn().mockReturnValue(true),
   generateAddress: jest.fn().mockReturnValue('test-address'),
   derivePublicKey: jest.fn().mockReturnValue('test-public-key'),
@@ -49,17 +69,6 @@ jest.mock('../../../config/config', () => ({
     UPDATE_INTERVAL_MS: 1000
   }
 }));
-
-// Mock the isHashBelowCeiling function to always return true for tests
-jest.mock('../../../utils/cryptoUtils', () => {
-  return {
-    sha256Hash: jest.fn().mockImplementation((data) => {
-      // Just return a simple hash for testing
-      return 'mocked-hash-' + JSON.stringify(data).length;
-    }),
-    isHashBelowCeiling: jest.fn().mockReturnValue(true)
-  };
-});
 
 describe('Chain Validator', () => {
   // Helper function to create a valid block
@@ -94,7 +103,7 @@ describe('Chain Validator', () => {
     const block: Block = {
       header,
       transactions,
-      hash: sha256Hash(header)
+      hash: height === 0 ? SimulatorConfig.GENESIS_BLOCK_HASH : sha256Hash(header)
     };
     
     return block;
@@ -105,8 +114,18 @@ describe('Chain Validator', () => {
     const chain: Block[] = [];
     
     // Create genesis block
-    const mockGenesisBlockHash = SimulatorConfig.GENESIS_PREV_HASH;
-    const genesisBlock = createValidBlock(mockGenesisBlockHash, 0, Date.now() - length * 10000);
+    const genesisBlock = {
+      header: {
+        transactionHash: sha256Hash([]),
+        timestamp: Date.now() - length * 10000,
+        previousHeaderHash: SimulatorConfig.GENESIS_PREV_HASH,
+        ceiling: parseInt(SimulatorConfig.CEILING, 16),
+        nonce: 0,
+        height: 0
+      },
+      transactions: [],
+      hash: SimulatorConfig.GENESIS_BLOCK_HASH
+    };
     chain.push(genesisBlock);
     
     // Create subsequent blocks

@@ -28,6 +28,7 @@
     "serve": "vite preview",
     "clean": "rm -rf node_modules/.cache dist",
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns=src/__tests__/integration",
     "test:watch": "jest --watch",
     "test:convergence": "jest src/__tests__/integration/networkIntegration.test.ts -t 'should verify blockchain convergence' --verbose",
     "test:block": "jest src/__tests__/core/blockchain/block.test.ts",

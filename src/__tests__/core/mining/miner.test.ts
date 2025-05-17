@@ -1,4 +1,20 @@
 import { Miner } from '../../../core/mining/miner';
+
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
 import { PeerInfoMap } from '../../../types/types';
 import { Node } from '../../../core/node';
 import { Block } from '../../../types/types';

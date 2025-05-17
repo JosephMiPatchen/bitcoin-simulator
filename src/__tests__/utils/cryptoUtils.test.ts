@@ -10,6 +10,22 @@ import {
   bufferToHex
 } from '../../utils/cryptoUtils';
 
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
+
 describe('Crypto Utilities', () => {
   describe('sha256Hash', () => {
     it('should create consistent hashes for the same input', () => {

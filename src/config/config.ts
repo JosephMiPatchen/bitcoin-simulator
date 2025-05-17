@@ -20,6 +20,7 @@ export const SimulatorConfig = {
   // Constants
   REWARDER_NODE_ID: "COINBASE-REWARD",
   GENESIS_PREV_HASH: "0000000000000000000000000000000000000000000000000000000000000000", // Previous hash for genesis blocks
+  GENESIS_BLOCK_HASH: "0000000000000000000000000000000000000000000000000000000000000001", // Hash of the genesis block
   
   // UI parameters
   MINING_BATCH_SIZE: 1000,   // Number of hash attempts per batch

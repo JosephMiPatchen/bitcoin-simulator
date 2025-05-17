@@ -3,6 +3,22 @@ import { Block, Transaction } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
 import { sha256Hash } from '../../../utils/cryptoUtils';
 
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
+
 describe('Block Module', () => {
   describe('createGenesisBlock', () => {
     it('should create a valid genesis block', () => {

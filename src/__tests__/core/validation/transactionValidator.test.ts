@@ -2,6 +2,22 @@ import { calculateTxid, validateTransaction } from '../../../core/validation/tra
 import { Transaction, TransactionInput, TransactionOutput } from '../../../types/types';
 import { SimulatorConfig } from '../../../config/config';
 
+// Mock console methods
+const originalConsole = { ...console };
+beforeAll(() => {
+  console.log = jest.fn();
+  console.error = jest.fn();
+  console.warn = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
+  console.warn = originalConsole.warn;
+  console.info = originalConsole.info;
+});
+
 // Mock security validator
 jest.mock('../../../core/validation/securityValidator', () => ({
   validateTransactionSecurity: jest.fn().mockResolvedValue(true)
