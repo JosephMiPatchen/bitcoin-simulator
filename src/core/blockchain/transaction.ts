@@ -1,10 +1,21 @@
 import { Transaction, TransactionInput, TransactionOutput, PeerInfoMap } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
 import { calculateTxid } from '../validation/transactionValidator';
-import { generateSignature as cryptoGenerateSignature, generateAddress } from '../../utils/cryptoUtils';
+import { generateSignature as cryptoGenerateSignature } from '../../utils/cryptoUtils';
 
-// Import the SignatureInput interface from cryptoUtils
-import { SignatureInput } from '../../utils/cryptoUtils';
+/**
+ * Creates the signature input data for a transaction input
+ * This is used for both signing and verification to ensure consistency
+ */
+export function createSignatureInput(
+  sourceOutputId: string,
+  allOutputs: TransactionOutput[]
+) {
+  return {
+    sourceOutputId,
+    allOutputs
+  };
+}
 
 /**
  * Creates a coinbase transaction for the given miner and block height
@@ -75,12 +86,8 @@ export const createRedistributionTransaction = async (
     }
   ];
   
-  // Create the signature input object with the transaction details
-  const signatureInput: SignatureInput = {
-    sourceOutputId: inputs[0].sourceOutputId,
-    allOutputs: outputs,
-    txid: coinbaseTxid // Include the coinbase txid for reference
-  };
+  // Create the signature input object using shared function
+  const signatureInput = createSignatureInput(inputs[0].sourceOutputId, outputs);
   
   // Generate the signature using the cryptoUtils function and await the result
   // This will block until the signature is generated

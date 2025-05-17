@@ -5,7 +5,8 @@
 
 import { Transaction } from '../../types/types';
 import { SimulatorConfig } from '../../config/config';
-import { generateAddress, verifySignature, SignatureInput } from '../../utils/cryptoUtils';
+import { generateAddress, verifySignature } from '../../utils/cryptoUtils';
+import { createSignatureInput } from '../blockchain/transaction';
 
 /**
  * Validates the security aspects of a transaction
@@ -57,13 +58,12 @@ export const validateTransactionSecurity = async (
       return false;
     }
     
-    // 7. Create the signature input object that was used for signing
-    // This must match exactly with what was used to create the transaction
-    const signatureInput: SignatureInput = {
-      sourceOutputId: input.sourceOutputId,
-      allOutputs: transaction.outputs,
-      txid: transaction.txid
-    };
+    // 7. Create the signature input object using shared function
+    // This ensures consistency with the signing process
+    const signatureInput = createSignatureInput(
+      input.sourceOutputId,
+      transaction.outputs
+    );
     
     // 8. Cryptographically verify ownership of the input and right to spend that BTC
     // This ensures the transaction is authorized by the rightful owner of the UTXO
