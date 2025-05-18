@@ -13,7 +13,7 @@ import { Node } from '../node';
  */
 
 export class Miner {
-  private isMining: boolean = false;
+  public isMining: boolean = false;
   private onBlockMined: (block: Block) => void;
   private node: Node;
   private miningTimer: NodeJS.Timeout | null = null;
@@ -47,9 +47,12 @@ export class Miner {
   private getValidPeers(): PeerInfoMap {
     const peers = this.peers;
     return Object.entries(peers).reduce((validPeers, [peerId, info]) => {
-      // Only include peers that have a defined non-empty address
-      if (info?.address !== undefined && info.address !== '') {
-        validPeers[peerId] = { address: info.address };
+      // Only include peers that have a defined non-empty address and public key
+      if (info?.address !== undefined && info.address !== '' && info?.publicKey !== undefined) {
+        validPeers[peerId] = { 
+          address: info.address,
+          publicKey: info.publicKey
+        };
       }
       return validPeers;
     }, {} as PeerInfoMap);

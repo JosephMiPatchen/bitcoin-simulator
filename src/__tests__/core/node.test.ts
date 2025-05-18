@@ -26,10 +26,13 @@ describe('Node Module', () => {
   beforeEach(() => {
     node = new Node(nodeId);
     
-    // Create peers with addresses
-    const peers: { [peerId: string]: { address: string } } = {};
+    // Create peers with addresses and public keys
+    const peers: { [peerId: string]: { address: string, publicKey: string } } = {};
     peerIds.forEach(peerId => {
-      peers[peerId] = { address: `address-${peerId}` };
+      peers[peerId] = { 
+        address: `address-${peerId}`,
+        publicKey: `pubkey-${peerId}`
+      };
     });
     node.setPeerInfosWithAddresses(peers);
     
@@ -78,7 +81,7 @@ describe('Node Module', () => {
   });
   
   describe('block handling', () => {
-    it('should process a received block', () => {
+    it('should process a received block', async () => {
       // Mock the blockchain's addBlock method
       const mockBlockchain = { addBlock: jest.fn().mockReturnValue(true), getLatestBlock: jest.fn() };
       (node as any).blockchain = mockBlockchain;
@@ -106,7 +109,7 @@ describe('Node Module', () => {
       node.setOnChainUpdated(chainUpdatedCallback);
       
       // Handle the received block
-      node.receiveBlock(block);
+      await node.receiveBlock(block);
       
       // Should add the block to the blockchain
       expect(mockBlockchain.addBlock).toHaveBeenCalledWith(block);
@@ -117,7 +120,7 @@ describe('Node Module', () => {
   });
   
   describe('chain replacement', () => {
-    it('should replace its chain with a longer valid chain', () => {
+    it('should replace its chain with a longer valid chain', async () => {
       // Create a longer chain
       const longerChain: Block[] = [
         {
@@ -159,7 +162,7 @@ describe('Node Module', () => {
       node.setOnChainUpdated(chainUpdatedCallback);
       
       // Replace the chain
-      node.receiveChain(longerChain);
+      await node.receiveChain(longerChain);
       
       // Should call the blockchain's replaceChain method
       expect(mockBlockchain.replaceChain).toHaveBeenCalledWith(longerChain);
