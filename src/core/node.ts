@@ -138,7 +138,7 @@ export class Node {
     
     if (replaced === true) {
       // Stop current mining operation if we were mining
-      const wasMining = this.miner.getIsMining();
+      const wasMining = this.miner.isMining;
       this.miner.stopMining();
       
       // Only restart mining if we were mining before
