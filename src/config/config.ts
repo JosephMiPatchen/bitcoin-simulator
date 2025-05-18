@@ -6,7 +6,7 @@
 export const SimulatorConfig = {
   // Mining parameters
   BLOCK_REWARD: 4,           // BTC rewarded to miners
-  CEILING: "0x00000500000000000000000000000000000000000000000000000000000000000",  // Target difficulty 1/256
+  CEILING: "0x00050000000000000000000000000000000000000000000000000000000000000",  // Target difficulty 1/256
   
   // Network parameters
   NODE_COUNT: 4,             // Number of nodes in the network
@@ -20,7 +20,6 @@ export const SimulatorConfig = {
   // Constants
   REWARDER_NODE_ID: "COINBASE-REWARD",
   GENESIS_PREV_HASH: "0000000000000000000000000000000000000000000000000000000000000000", // Previous hash for genesis blocks
-  GENESIS_BLOCK_HASH: "0000000000000000000000000000000000000000000000000000000000000001", // Hash of the genesis block
   
   // UI parameters
   MINING_BATCH_SIZE: 1000,   // Number of hash attempts per batch

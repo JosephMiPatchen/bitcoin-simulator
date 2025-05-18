@@ -3,20 +3,6 @@ import { SimulatorConfig } from '../../config/config';
 import { Block, NodeState } from '../../types/types';
 import { calculateBlockHeaderHash } from '../../core/validation/blockValidator';
 
-// Mock all validation functions
-jest.mock('../../core/validation/securityValidator', () => ({
-  validateTransactionSecurity: jest.fn().mockResolvedValue(true)
-}));
-
-jest.mock('../../core/validation/transactionValidator', () => ({
-  validateTransaction: jest.fn().mockResolvedValue(true)
-}));
-
-jest.mock('../../core/validation/blockValidator', () => ({
-  validateBlock: jest.fn().mockResolvedValue(true),
-  calculateBlockHeaderHash: jest.requireActual('../../core/validation/blockValidator').calculateBlockHeaderHash,
-  calculateTransactionHash: jest.fn().mockReturnValue('mock-tx-hash')
-}));
 
 // Increase test timeout for integration tests
 jest.setTimeout(90000);

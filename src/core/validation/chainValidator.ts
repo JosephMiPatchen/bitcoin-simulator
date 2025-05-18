@@ -25,15 +25,9 @@ export const validateChain = async (chain: Block[]): Promise<boolean> => {
     return false;
   }
 
-  // Verify genesis block has correct previous hash
+  // For genesis block, verify it has the correct previous hash
   if (chain[0].header.previousHeaderHash !== SimulatorConfig.GENESIS_PREV_HASH) {
-    console.error('Genesis block has invalid previous hash');
-    return false;
-  }
-
-  // Verify genesis block has correct hash
-  if (chain[0].hash !== SimulatorConfig.GENESIS_BLOCK_HASH) {
-    console.error('Genesis block has invalid hash');
+    console.error('Genesis block must have the correct previous hash');
     return false;
   }
   

@@ -38,9 +38,21 @@ export const sha256Hash = (data: any): string => {
  * @returns True if the hash is below the ceiling
  */
 export const isHashBelowCeiling = (hash: string, ceiling: string): boolean => {
-  // Compare the hash to the ceiling
-  // This is a simplified version of Bitcoin's difficulty check
-  return hash < ceiling;
+  // Ensure both strings are in the same format (remove 0x prefix if present)
+  const normalizedHash = hash.replace('0x', '');
+  const normalizedCeiling = ceiling.replace('0x', '');
+  
+  // Compare digit by digit from left to right
+  for (let i = 0; i < normalizedHash.length && i < normalizedCeiling.length; i++) {
+    const hashDigit = parseInt(normalizedHash[i], 16);
+    const ceilingDigit = parseInt(normalizedCeiling[i], 16);
+    
+    if (hashDigit < ceilingDigit) return true;
+    if (hashDigit > ceilingDigit) return false;
+  }
+  
+  // If all digits match, consider them equal (not below)
+  return false;
 };
 
 /**
