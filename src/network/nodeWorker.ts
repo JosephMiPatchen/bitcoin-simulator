@@ -71,7 +71,7 @@ export class NodeWorker {
    * Sets the peer information with addresses directly
    * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string } }): void {
+  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string, publicKey: string } }): void {
     this._node.setPeerInfosWithAddresses(peers);
   }
   
