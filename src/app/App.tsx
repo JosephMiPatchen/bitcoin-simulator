@@ -28,6 +28,11 @@ const App: React.FC = () => {
     
     // Start periodic height requests to help with convergence
     heightIntervalRef.current = networkManager.startPeriodicHeightRequests(1000);
+
+    // Set up interval to update UI regardless of mining status
+    intervalRef.current = setInterval(() => {
+      updateNodeStates();
+    }, 500);
     
     // Cleanup on unmount
     return () => {
@@ -37,6 +42,7 @@ const App: React.FC = () => {
       if (heightIntervalRef.current) {
         clearInterval(heightIntervalRef.current);
       }
+      networkManager.stopAllNodes();
     };
   }, []);
   
@@ -55,21 +61,11 @@ const App: React.FC = () => {
     if (isMining) {
       // Stop mining
       networkManagerRef.current.stopAllMining();
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      
-      // Update node states one more time to ensure UI reflects stopped mining status
       updateNodeStates();
     } else {
       // Start mining
       networkManagerRef.current.startAllMining();
-      
-      // Set up interval to update UI
-      intervalRef.current = setInterval(() => {
-        updateNodeStates();
-      }, 500);
+      updateNodeStates();
     }
     
     setIsMining(!isMining);
