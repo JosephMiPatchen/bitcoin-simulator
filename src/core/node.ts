@@ -46,7 +46,7 @@ export class Node {
    * Sets the peer information with addresses directly
    * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string } }): void {
+  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string, publicKey: string } }): void {
     // Set the peer information directly
     this.peers = { ...peers };
   }
@@ -98,11 +98,17 @@ export class Node {
   /**
    * Handles a block received from the network
    */
-  receiveBlock(block: Block): void {
-    // Validate and add the block to the chain
-    const added = this.blockchain.addBlock(block);
+  async receiveBlock(block: Block): Promise<void> {
+    // Special case for genesis blocks - if we receive one, treat it as a chain
+    if (block.header.height === 0) {
+      this.receiveChain([block]);
+      return;
+    }
+
+    // For non-genesis blocks, validate and add to the chain
+    const added = await this.blockchain.addBlock(block);
     
-    if (added) {
+    if (added === true) {
       // Stop mining the current block
       this.miner.stopMining();
       
@@ -121,11 +127,11 @@ export class Node {
   /**
    * Handles a chain received from the network
    */
-  receiveChain(blocks: Block[]): void {
+  async receiveChain(blocks: Block[]): Promise<void> {
     // Try to replace our chain with the received one
-    const replaced = this.blockchain.replaceChain(blocks);
+    const replaced = await this.blockchain.replaceChain(blocks);
     
-    if (replaced) {
+    if (replaced === true) {
       // Stop mining the current block
       this.miner.stopMining();
       
@@ -144,11 +150,11 @@ export class Node {
   /**
    * Handles a block that was mined by this node
    */
-  private handleMinedBlock(block: Block): void {
+  private async handleMinedBlock(block: Block): Promise<void> {
     // Add the block to our chain
-    const added = this.blockchain.addBlock(block);
+    const added = await this.blockchain.addBlock(block);
     
-    if (added) {
+    if (added === true) {
       // Broadcast the block to peers
       if (this.onBlockBroadcast) {
         this.onBlockBroadcast(block);

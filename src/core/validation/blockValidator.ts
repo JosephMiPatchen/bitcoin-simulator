@@ -70,16 +70,23 @@ export const validateBlock = async (
   }
   
   // 5. Validate previous header hash matches the provided hash
-  // Note: This function assumes it's not validating a genesis block
-  // Genesis blocks are trusted by construction and added directly to the blockchain
-  if (!previousHeaderHash) {
-    console.error('Cannot validate a block without a previous header hash');
-    return false;
-  }
-  
-  if (header.previousHeaderHash !== previousHeaderHash) {
-    console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousHeaderHash}`);
-    return false;
+  // For non-genesis blocks, validate previous hash
+  if (header.height > 0) {
+    if (!previousHeaderHash) {
+      console.error('Cannot validate a non-genesis block without a previous header hash');
+      return false;
+    }
+    
+    if (header.previousHeaderHash !== previousHeaderHash) {
+      console.error(`Previous header hash mismatch: ${header.previousHeaderHash} !== ${previousHeaderHash}`);
+      return false;
+    }
+  } else {
+    // For genesis blocks, only validate that previous hash is the genesis prev hash
+    if (header.previousHeaderHash !== SimulatorConfig.GENESIS_PREV_HASH) {
+      console.error('Genesis block must have the correct previous hash');
+      return false;
+    }
   }
   
   // 6. Validate block height is appropriate
@@ -95,10 +102,13 @@ export const validateBlock = async (
   }
   
   // 8. Validate block hash is below ceiling
-  const blockHash = calculateBlockHeaderHash(header);
-  if (!isHashBelowCeiling(blockHash, SimulatorConfig.CEILING)) {
-    console.error(`Block hash is not below ceiling: ${blockHash}`);
-    return false;
+  // Skip this check for genesis blocks - they can have any hash
+  if (header.height > 0) {
+    const blockHash = calculateBlockHeaderHash(header);
+    if (!isHashBelowCeiling(blockHash, SimulatorConfig.CEILING)) {
+      console.error(`Block hash is not below ceiling: ${blockHash}`);
+      return false;
+    }
   }
   
   return true;

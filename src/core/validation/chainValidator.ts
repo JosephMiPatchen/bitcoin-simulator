@@ -30,6 +30,9 @@ export const validateChain = async (chain: Block[]): Promise<boolean> => {
     console.error('Genesis block must have the correct previous hash');
     return false;
   }
+
+  // For genesis block, we don't validate against the ceiling
+  // Each node can have its own unique genesis block hash
   
   // Validate each block in the chain
   let tempUtxoSet: UTXOSet = {};
