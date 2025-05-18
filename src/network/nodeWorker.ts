@@ -191,12 +191,11 @@ export class NodeWorker {
    * Handles a height response message from another node
    */
   private handleHeightResponse(message: HeightResponseMessage): void {
-    // Get our current blockchain height and mining status
+    // Get our current blockchain height
     const ourHeight = this._node.getBlockchainHeight();
-    const isMining = this._node.getState().isMining;
     
-    // Only request longer chains if we are mining
-    if (isMining && message.height > ourHeight) {
+    // Always request longer chains to stay in sync
+    if (message.height > ourHeight) {
       this.requestChain(message.fromNodeId);
     }
   }
