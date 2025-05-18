@@ -16,6 +16,7 @@ export class Miner {
   private isMining: boolean = false;
   private onBlockMined: (block: Block) => void;
   private node: Node;
+  private miningTimer: NodeJS.Timeout | null = null;
   
   constructor(
     onBlockMined: (block: Block) => void,
@@ -149,6 +150,10 @@ export class Miner {
    */
   stopMining(): void {
     this.isMining = false;
+    if (this.miningTimer) {
+      clearTimeout(this.miningTimer);
+      this.miningTimer = null;
+    }
   }
   
   /**
@@ -156,7 +161,7 @@ export class Miner {
    */
   private mineBlock(block: Block, expectedPreviousHash: string): void {
     // Schedule mining to not block the main thread
-    setTimeout(() => {
+    this.miningTimer = setTimeout(() => {
       // Check if we should stop mining
       if (!this.isMining) return;
       
