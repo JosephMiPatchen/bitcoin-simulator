@@ -7,7 +7,25 @@ import { calculateBlockHeaderHash } from '../../core/validation/blockValidator';
 // Increase test timeout for integration tests
 jest.setTimeout(90000);
 
+// Store original console methods
+const originalConsole = { ...console };
+
 describe('Network Integration Tests', () => {
+  beforeEach(() => {
+    // Mock console methods
+    console.log = jest.fn();
+    console.error = jest.fn();
+    console.warn = jest.fn();
+    console.info = jest.fn();
+  });
+
+  afterEach(() => {
+    // Restore original console methods
+    console.log = originalConsole.log;
+    console.error = originalConsole.error;
+    console.warn = originalConsole.warn;
+    console.info = originalConsole.info;
+  });
   // Create a network with 3 nodes
   let networkManager: NetworkManager;
   let intervalIds: NodeJS.Timeout[] = [];

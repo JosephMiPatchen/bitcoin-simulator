@@ -3,14 +3,15 @@ import { SimulatorConfig } from '../../config/config';
 
 // Mock console methods
 const originalConsole = { ...console };
-beforeAll(() => {
+
+beforeEach(() => {
   console.log = jest.fn();
   console.error = jest.fn();
   console.warn = jest.fn();
   console.info = jest.fn();
 });
 
-afterAll(() => {
+afterEach(() => {
   console.log = originalConsole.log;
   console.error = originalConsole.error;
   console.warn = originalConsole.warn;
@@ -33,6 +34,7 @@ jest.mock('../../core/validation/blockValidator', () => ({
 }));
 
 describe('Network Communication', () => {
+
   // Use a shorter network delay for faster tests
   SimulatorConfig.MIN_NETWORK_DELAY_MS = 0;
   SimulatorConfig.MAX_NETWORK_DELAY_MS = 10;
