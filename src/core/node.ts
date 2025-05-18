@@ -137,11 +137,14 @@ export class Node {
     const replaced = await this.blockchain.replaceChain(blocks);
     
     if (replaced === true) {
-      // Stop mining the current block
+      // Stop current mining operation if we were mining
+      const wasMining = this.miner.getIsMining();
       this.miner.stopMining();
       
-      // Start mining a new block on top of the new chain
-      this.startMining();
+      // Only restart mining if we were mining before
+      if (wasMining) {
+        this.startMining();
+      }
       
       // Notify that the chain was updated
       if (this.onChainUpdated) {
