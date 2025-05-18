@@ -12,6 +12,7 @@ export class Node {
   private blockchain: Blockchain;
   private miner: Miner;
   private peers: PeerInfoMap = {};
+  private shouldBeMining: boolean = false;
   
   // Security-related properties
   private privateKey: string;
@@ -84,6 +85,7 @@ export class Node {
    * Starts mining a new block
    */
   async startMining(): Promise<void> {
+    this.shouldBeMining = true;
     const latestBlock = this.blockchain.getLatestBlock();
     await this.miner.startMining(latestBlock);
   }
@@ -92,6 +94,7 @@ export class Node {
    * Stops mining
    */
   stopMining(): void {
+    this.shouldBeMining = false;
     this.miner.stopMining();
   }
   
@@ -112,8 +115,10 @@ export class Node {
       // Stop mining the current block
       this.miner.stopMining();
       
-      // Start mining a new block on top of the received block
-      this.startMining();
+      // Only start mining if we should be mining
+      if (this.shouldBeMining) {
+        this.startMining();
+      }
       
       // Notify that the chain was updated
       if (this.onChainUpdated) {
