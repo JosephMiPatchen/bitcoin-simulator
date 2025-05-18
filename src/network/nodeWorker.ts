@@ -1,5 +1,5 @@
 import { Node } from '../core/node';
-import { Block } from '../types/types';
+import { Block, PeerInfoMap } from '../types/types';
 import { 
   Message, 
   MessageType, 
@@ -71,7 +71,7 @@ export class NodeWorker {
    * Sets the peer information with addresses directly
    * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string, publicKey: string } }): void {
+  setPeerInfosWithAddresses(peers: PeerInfoMap): void {
     this._node.setPeerInfosWithAddresses(peers);
   }
   

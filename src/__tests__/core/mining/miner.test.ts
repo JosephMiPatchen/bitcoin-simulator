@@ -29,9 +29,9 @@ describe('Miner Module', () => {
   
   // Mock peer infos
   const mockPeers: PeerInfoMap = {
-    'peer1': { address: 'address1', publicKey: 'pubkey1' },
-    'peer2': { address: 'address2', publicKey: 'pubkey2' },
-    'peer3': { address: 'address3', publicKey: 'pubkey3' }
+    'peer1': { address: 'address1' },
+    'peer2': { address: 'address2' },
+    'peer3': { address: 'address3' }
   };
   
   beforeEach(() => {

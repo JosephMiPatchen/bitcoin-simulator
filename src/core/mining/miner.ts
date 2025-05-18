@@ -47,11 +47,10 @@ export class Miner {
   private getValidPeers(): PeerInfoMap {
     const peers = this.peers;
     return Object.entries(peers).reduce((validPeers, [peerId, info]) => {
-      // Only include peers that have a defined non-empty address and public key
-      if (info?.address !== undefined && info.address !== '' && info?.publicKey !== undefined) {
+      // Only include peers that have a defined non-empty address
+      if (info?.address !== undefined && info.address !== '') {
         validPeers[peerId] = { 
-          address: info.address,
-          publicKey: info.publicKey
+          address: info.address
         };
       }
       return validPeers;

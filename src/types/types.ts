@@ -66,7 +66,6 @@ export interface NetworkMessage {
  */
 export interface PeerInfo {
   address: string;
-  publicKey: string;
 }
 
 /**

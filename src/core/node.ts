@@ -47,7 +47,7 @@ export class Node {
    * Sets the peer information with addresses directly
    * @param peers Object mapping peer IDs to their information including addresses
    */
-  setPeerInfosWithAddresses(peers: { [peerId: string]: { address: string, publicKey: string } }): void {
+  setPeerInfosWithAddresses(peers: PeerInfoMap): void {
     // Set the peer information directly
     this.peers = { ...peers };
   }

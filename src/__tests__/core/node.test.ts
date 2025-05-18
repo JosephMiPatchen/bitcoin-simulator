@@ -1,4 +1,5 @@
 import { Node } from '../../core/node';
+import { PeerInfoMap } from '../../types/types';
 
 // Mock console methods
 const originalConsole = { ...console };
@@ -27,11 +28,11 @@ describe('Node Module', () => {
     node = new Node(nodeId);
     
     // Create peers with addresses and public keys
-    const peers: { [peerId: string]: { address: string, publicKey: string } } = {};
+    const peers: PeerInfoMap = {};
     peerIds.forEach(peerId => {
       peers[peerId] = { 
         address: `address-${peerId}`,
-        publicKey: `pubkey-${peerId}`
+
       };
     });
     node.setPeerInfosWithAddresses(peers);
