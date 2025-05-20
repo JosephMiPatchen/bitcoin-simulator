@@ -2,8 +2,7 @@
 .blockchain-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md);
+  gap: 0;
   width: 100%;
 }
 
@@ -14,7 +13,7 @@
   position: relative;
   flex-wrap: wrap;
   width: 100%;
-  padding: var(--spacing-lg);
+ 
   background-color: var(--panel-background);
   border-radius: var(--border-radius-md);
 }
