@@ -6,7 +6,7 @@
 export const SimulatorConfig = {
   // Mining parameters
   BLOCK_REWARD: 4,           // BTC rewarded to miners
-  CEILING: "0x50000000000000000000000000000000000000000000000000000000000000000",  // Target difficulty 1/256
+  CEILING: "0x00050000000000000000000000000000000000000000000000000000000000000",  // Target difficulty 1/256
   
   // Network parameters
   NODE_COUNT: 4,             // Number of nodes in the network
