@@ -10,11 +10,11 @@
 .blockchain-row {
   display: flex;
   gap: var(--spacing-xl);
-  align-items: flex-start;
+  align-items: center;
   position: relative;
   flex-wrap: wrap;
   width: 100%;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   background-color: var(--panel-background);
   border-radius: var(--border-radius-md);
 }
@@ -43,6 +43,19 @@
 .block-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+/* Block arrows */
+.block-item:not(:last-child):not(.last-in-row):after {
+  content: "→";
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  font-weight: bold;
+  z-index: 5;
 }
 
 .block-item.selected {
