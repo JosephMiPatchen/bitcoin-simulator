@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NetworkManager } from '../network/networkManager';
 import { NodeState } from '../types/types';
 import NodePanel from './components/NodePanel';
+import './styles/theme.css';
 import './App.css';
 
 const App: React.FC = () => {

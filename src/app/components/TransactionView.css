@@ -1,27 +1,28 @@
 /* Transaction flow visualization */
 .transaction-item {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 15px;
-  border-left: 3px solid var(--primary-color);
-  margin-bottom: 15px;
+  background-color: var(--overlay-background);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  border-left: 3px solid var(--border-accent);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Transaction header styling */
 .transaction-header {
   display: flex;
   justify-content: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tx-type {
   background-color: var(--primary-color);
-  color: #000;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  color: var(--background-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -95,13 +96,13 @@
   border-radius: 6px;
   min-width: 120px;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all var(--transition-speed) var(--transition-timing);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tx-input:hover, .tx-output:hover {
   transform: translateY(-3px);
-  box-shadow: 0 3px 8px rgba(247, 147, 26, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .node-id {
@@ -112,7 +113,7 @@
 
 .node-value {
   font-size: 0.8rem;
-  color: #aaa;
+  color: var(--text-secondary);
   background-color: rgba(0, 0, 0, 0.2);
   padding: 3px 8px;
   border-radius: 12px;
