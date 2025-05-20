@@ -4,6 +4,7 @@ import { calculateBlockHeaderHash } from '../../core/validation/blockValidator';
 import { isHashBelowCeiling } from '../../utils/cryptoUtils';
 import { SimulatorConfig } from '../../config/config';
 import TransactionView from './TransactionView';
+import { useSimulatorContext } from '../contexts/SimulatorContext';
 import './BlockchainView.css';
 
 interface BlockchainViewProps {
@@ -12,6 +13,13 @@ interface BlockchainViewProps {
 
 const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
+  const { forkStartHeight } = useSimulatorContext();
+  
+  // Determine if a block is part of a fork
+  const isForkedBlock = (block: Block): boolean => {
+    if (forkStartHeight === null) return false;
+    return block.header.height >= forkStartHeight;
+  };
   
   // Get the last 6 characters of a hash for display
   const shortenHash = (hash: string) => hash.substring(hash.length - 6);
@@ -51,7 +59,7 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
             return (
               <div 
                 key={hash} 
-                className={`block-item ${selectedBlock === block ? 'selected' : ''} ${isGenesis ? 'genesis-block' : ''} ${isLast ? 'last-in-row' : ''}`}
+                className={`block-item ${selectedBlock === block ? 'selected' : ''} ${isGenesis ? 'genesis-block' : ''} ${isLast ? 'last-in-row' : ''} ${isForkedBlock(block) ? 'forked-block' : ''}`}
                 onClick={() => setSelectedBlock(block === selectedBlock ? null : block)}
               >
                 <div className="block-height">{block.header.height}</div>

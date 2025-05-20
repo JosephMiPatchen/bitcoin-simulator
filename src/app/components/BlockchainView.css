@@ -61,6 +61,18 @@
   box-shadow: 0 0 10px var(--accent-color);
 }
 
+/* Forked block styling */
+.forked-block {
+  background-color: #f0f0f0;
+  border-color: #888;
+  opacity: 0.8;
+}
+
+.forked-block .block-height,
+.forked-block .block-hash {
+  color: #888;
+}
+
 .block-height {
   font-weight: bold;
   color: var(--primary-color);

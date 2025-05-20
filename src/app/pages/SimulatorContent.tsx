@@ -2,14 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NetworkManager } from '../../network/networkManager';
 import { NodeState } from '../../types/types';
 import NodePanel from '../components/NodePanel';
+import { SimulatorProvider, useSimulatorContext } from '../contexts/SimulatorContext';
 
 /**
- * Main simulator component that contains all the Bitcoin simulation functionality
+ * Inner simulator component that uses the simulator context
  */
-const SimulatorContent: React.FC = () => {
+const SimulatorContentInner: React.FC = () => {
   // State for node states and mining status
   const [nodeStates, setNodeStates] = useState<Record<string, NodeState>>({});
   const [isMining, setIsMining] = useState<boolean>(false);
+  
+  // Get fork detection from context
+  const { detectForks } = useSimulatorContext();
   
   // Reference to the network manager instance
   const networkManagerRef = useRef<NetworkManager | null>(null);
@@ -53,6 +57,9 @@ const SimulatorContent: React.FC = () => {
     if (networkManagerRef.current) {
       const states = networkManagerRef.current.getNetworkState();
       setNodeStates(states);
+      
+      // Detect forks in the network
+      detectForks(states);
     }
   };
   
@@ -98,6 +105,17 @@ const SimulatorContent: React.FC = () => {
         <p>Simple Bitcoin Simulator</p>
       </footer>
     </div>
+  );
+};
+
+/**
+ * Main simulator component that provides the context
+ */
+const SimulatorContent: React.FC = () => {
+  return (
+    <SimulatorProvider>
+      <SimulatorContentInner />
+    </SimulatorProvider>
   );
 };
 
