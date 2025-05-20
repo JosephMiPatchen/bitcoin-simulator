@@ -31,7 +31,8 @@ export class Node {
     this.publicKey = derivePublicKey(this.privateKey);
     this.address = generateAddress(this.publicKey);
     
-    this.blockchain = new Blockchain(nodeId);
+    // Pass the node's actual address to the blockchain
+    this.blockchain = new Blockchain(nodeId, this.address);
     
     // Initialize miner with callback for when a block is mined
     // Using .bind(this) ensures the handleMinedBlock method maintains the Node instance context

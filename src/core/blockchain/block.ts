@@ -38,10 +38,9 @@ export const createBlockTemplate = (
  * Creates a simple coinbase transaction for the genesis block
  * This avoids circular dependencies with the transaction module
  */
-const createGenesisCoinbaseTransaction = (minerNodeId: string): Transaction => {
-  // Generate a deterministic address for the miner based on the node ID
-  // This is a simplified approach for the genesis block
-  const minerAddress = `address-${minerNodeId}`;
+const createGenesisCoinbaseTransaction = (minerNodeId: string, minerAddress: string): Transaction => {
+  // Use the actual miner address passed from the node
+  // This ensures consistency with the node's real Bitcoin address
   
   return {
     inputs: [{ sourceOutputId: SimulatorConfig.REWARDER_NODE_ID }],
@@ -58,10 +57,12 @@ const createGenesisCoinbaseTransaction = (minerNodeId: string): Transaction => {
 
 /**
  * Creates the genesis block
+ * @param minerNodeId ID of the miner node
+ * @param minerAddress Bitcoin address of the miner node
  */
-export const createGenesisBlock = (minerNodeId: string): Block => {
+export const createGenesisBlock = (minerNodeId: string, minerAddress: string): Block => {
   // Create a simple coinbase transaction for the genesis block
-  const coinbaseTransaction = createGenesisCoinbaseTransaction(minerNodeId);
+  const coinbaseTransaction = createGenesisCoinbaseTransaction(minerNodeId, minerAddress);
   const transactions = [coinbaseTransaction];
   
   const block = createBlockTemplate(null, transactions);

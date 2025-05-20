@@ -12,9 +12,11 @@ export class Blockchain {
   private blocks: Block[] = [];
   private utxoSet: UTXOSet = {};
   private nodeId: string;
+  private minerAddress: string;
   
-  constructor(nodeId: string) {
+  constructor(nodeId: string, minerAddress: string) {
     this.nodeId = nodeId;
+    this.minerAddress = minerAddress;
     this.initializeChain();
   }
   
@@ -22,7 +24,7 @@ export class Blockchain {
    * Initializes the blockchain with a genesis block
    */
   private initializeChain(): void {
-    const genesisBlock = createGenesisBlock(this.nodeId);
+    const genesisBlock = createGenesisBlock(this.nodeId, this.minerAddress);
     this.blocks.push(genesisBlock);
     
     // Rebuild the UTXO set from all blocks
