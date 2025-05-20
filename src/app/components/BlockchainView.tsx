@@ -88,11 +88,11 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
                 </div>
                 <div className="info-row">
                   <span className="info-label">Hash:</span>
-                  <span className="info-value hash-value">{calculateBlockHeaderHash(selectedBlock.header)}</span>
+                  <span className="info-value hash-value">0x{calculateBlockHeaderHash(selectedBlock.header)}</span>
                 </div>
                 <div className="info-row">
                   <span className="info-label">Previous Hash:</span>
-                  <span className="info-value hash-value">{selectedBlock.header.previousHeaderHash}</span>
+                  <span className="info-value hash-value">0x{selectedBlock.header.previousHeaderHash}</span>
                 </div>
                 <div className="info-row">
                   <span className="info-label">Nonce:</span>
@@ -104,7 +104,7 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
                 </div>
                 <div className="info-row">
                   <span className="info-label">Ceiling:</span>
-                  <span className="info-value hash-value">{SimulatorConfig.CEILING}</span>
+                  <span className="info-value hash-value">0x{SimulatorConfig.CEILING}</span>
                 </div>
                 <div className="modal-row">
                   <div className="modal-label">Valid Hash:</div>
