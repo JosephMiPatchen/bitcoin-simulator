@@ -1,0 +1,189 @@
+/* Blockchain visualization */
+.blockchain-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.blockchain-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  position: relative;
+  flex-wrap: wrap;
+  padding: 5px 0;
+}
+
+.blockchain-row:not(:last-child)::after {
+  content: '';
+}
+
+.block-item {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 10px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.block-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.block-item.selected {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+
+.block-height {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.block-hash {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: rgba(247, 147, 26, 0.2);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.block-validation {
+  margin-bottom: 6px;
+}
+
+.valid-block {
+  color: #4caf50;
+}
+
+.invalid-block {
+  color: #f44336;
+}
+
+.genesis-text {
+  color: var(--accent-color);
+  font-size: 0.8rem;
+}
+
+.block-tx-count {
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+/* Block Modal */
+.block-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.block-modal {
+  background-color: var(--background-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.block-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.block-modal-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.block-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.block-info {
+  display: grid;
+  gap: 10px;
+}
+
+.info-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.info-label {
+  color: var(--primary-color);
+  font-weight: bold;
+  min-width: 120px;
+}
+
+.info-value {
+  font-family: monospace;
+}
+
+.hash-value {
+  word-break: break-all;
+  background-color: rgba(247, 147, 26, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.transactions-container {
+  border-top: 1px solid var(--primary-color);
+  padding-top: 20px;
+}
+
+.transactions-container h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.genesis-hash {
+  color: var(--accent-color);
+}
+
+.valid-hash {
+  color: #4caf50;
+}
+
+.invalid-hash {
+  color: #f44336;
+}
