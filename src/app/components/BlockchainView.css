@@ -33,7 +33,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease-in-out;
   position: relative;
   margin-bottom: 10px;
 }
@@ -63,14 +63,36 @@
 
 /* Forked block styling */
 .forked-block {
-  background-color: #f0f0f0;
-  border-color: #888;
-  opacity: 0.8;
+  border-color: #444;
+  border-width: 2px;
+  transition: border-color 0.3s ease-in-out, border-width 0.3s ease-in-out;
 }
 
-.forked-block .block-height,
-.forked-block .block-hash {
-  color: #888;
+/* Fork icon styling */
+.fork-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #666;
+  font-size: 16px;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+/* Animation for blocks changing state */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.block-item {
+  /* Add existing styles */
+  transition: all 0.3s ease-in-out;
 }
 
 .block-height {

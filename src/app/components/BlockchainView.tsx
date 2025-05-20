@@ -5,6 +5,7 @@ import { isHashBelowCeiling } from '../../utils/cryptoUtils';
 import { SimulatorConfig } from '../../config/config';
 import TransactionView from './TransactionView';
 import { useSimulatorContext } from '../contexts/SimulatorContext';
+import { BiFork } from "react-icons/bi";
 import './BlockchainView.css';
 
 interface BlockchainViewProps {
@@ -73,6 +74,7 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
                   }
                 </div>
                 <div className="block-tx-count">{block.transactions.length} tx</div>
+                {isForkedBlock(block) && <div className="fork-icon"><BiFork /></div>}
               </div>
             );
           })}
