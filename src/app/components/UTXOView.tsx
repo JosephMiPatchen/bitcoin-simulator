@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { UTXOSet, TransactionOutput } from '../../types/types';
+import Select from 'react-select';
 import './UTXOView.css';
 
 // Icons for copy buttons
@@ -18,39 +19,74 @@ const CheckIcon = () => (
 
 interface UTXOViewProps {
   utxoSet: UTXOSet;
+  allNodeIds?: string[];
+  nodeId?: string; // Current node ID for which the modal is opened
 }
 
-const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet }) => {
-  const [filterAddress, setFilterAddress] = useState<string>('');
-  const [filterNodeId, setFilterNodeId] = useState<string>('');
+// Define the option type for react-select
+interface NodeOption {
+  value: string;
+  label: string;
+}
+
+const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet, allNodeIds = [], nodeId }) => {
+  const [selectedNodes, setSelectedNodes] = useState<NodeOption[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const itemsPerPage = 10;
 
-  // Use useMemo to calculate filtered UTXOs only when utxoSet or filters change
+  // Extract unique node IDs from the UTXO set if not provided
+  const uniqueNodeIds = useMemo(() => {
+    if (allNodeIds && allNodeIds.length > 0) return allNodeIds;
+    
+    // Extract unique node IDs from UTXO set
+    const nodeIds = new Set<string>();
+    Object.values(utxoSet).forEach(output => {
+      nodeIds.add(output.nodeId);
+    });
+    return Array.from(nodeIds).sort();
+  }, [utxoSet, allNodeIds]);
+  
+  // Create options for react-select
+  const nodeOptions = useMemo(() => {
+    return uniqueNodeIds.map(nodeId => ({
+      value: nodeId,
+      label: nodeId
+    }));
+  }, [uniqueNodeIds]);
+  
+  // Use useMemo to calculate filtered UTXOs only when utxoSet or selected nodes change
   const filteredUtxos = useMemo(() => {
     const utxoEntries = Object.entries(utxoSet);
     
-    // Apply both filters
+    // If no nodes are selected, show all UTXOs
+    if (selectedNodes.length === 0) {
+      return utxoEntries;
+    }
+    
+    // Create a Set of selected node IDs for faster lookup
+    const selectedNodeIds = new Set(selectedNodes.map(node => node.value));
+    
+    // Filter UTXOs by selected node IDs
     return utxoEntries.filter(([_, output]) => {
-      // Address filter
-      const addressMatch = !filterAddress || 
-        output.lock.toLowerCase().includes(filterAddress.toLowerCase());
-      
-      // Node ID filter
-      const nodeMatch = !filterNodeId || 
-        output.nodeId.toLowerCase().includes(filterNodeId.toLowerCase());
-      
-      // Both filters must match
-      return addressMatch && nodeMatch;
+      return selectedNodeIds.has(output.nodeId);
     });
-  }, [utxoSet, filterAddress, filterNodeId]);
+  }, [utxoSet, selectedNodes]);
   
-  // Reset to page 1 when any filter changes
+  // Reset to page 1 when selected nodes change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterAddress, filterNodeId]);
+  }, [selectedNodes]);
+
+  // Calculate total BTC owned by the current node
+  const nodeTotalBtc = useMemo(() => {
+    if (!nodeId) return 0;
+    
+    return Object.values(utxoSet)
+      .filter(output => output.nodeId === nodeId)
+      .reduce((total, output) => total + output.value, 0);
+  }, [utxoSet, nodeId]);
 
   // Calculate pagination values using useMemo to prevent unnecessary recalculations
   const { totalPages, currentUtxos } = useMemo(() => {
@@ -121,7 +157,19 @@ const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet }) => {
   return (
     <div className="utxo-view">
       <div className="utxo-header-actions">
-        <h3 className="utxo-title">UTXO Set ({Object.keys(utxoSet).length})</h3>
+        <div className="utxo-title-container">
+          <h3 className="utxo-title">UTXO Set</h3>
+          <div className="utxo-stats">
+            <div className="utxo-count">
+              Total UTXOs: <span className="utxo-stat-value">{Object.keys(utxoSet).length}</span>
+            </div>
+            {nodeId && (
+              <div className="node-total-btc">
+                Node Balance: <span className="btc-value">{nodeTotalBtc.toFixed(2)} BTC</span>
+              </div>
+            )}
+          </div>
+        </div>
         <button 
           className="copy-all-button" 
           onClick={copyAllToClipboard}
@@ -131,49 +179,26 @@ const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet }) => {
         </button>
       </div>
       <div className="utxo-filters">
-        <div className="utxo-filter">
-          <input
-            type="text"
-            placeholder="Filter by address..."
-            value={filterAddress}
-            onChange={(e) => setFilterAddress(e.target.value)}
-            className="utxo-filter-input"
+        <div className="utxo-filter utxo-filter-full">
+          <label className="utxo-filter-label">Filter by Node IDs</label>
+          <Select
+            isMulti
+            name="nodeIds"
+            options={nodeOptions}
+            className="react-select-container"
+            classNamePrefix="react-select"
+            placeholder="Select node IDs to filter..."
+            value={selectedNodes}
+            onChange={(selected) => setSelectedNodes(selected as NodeOption[])}
+            isClearable={true}
+            isSearchable={true}
           />
-          {filterAddress && (
-            <button 
-              className="utxo-filter-clear" 
-              onClick={() => setFilterAddress('')}
-            >
-              ×
-            </button>
-          )}
         </div>
         
-        <div className="utxo-filter">
-          <input
-            type="text"
-            placeholder="Filter by node ID..."
-            value={filterNodeId}
-            onChange={(e) => setFilterNodeId(e.target.value)}
-            className="utxo-filter-input"
-          />
-          {filterNodeId && (
-            <button 
-              className="utxo-filter-clear" 
-              onClick={() => setFilterNodeId('')}
-            >
-              ×
-            </button>
-          )}
-        </div>
-        
-        {(filterAddress || filterNodeId) && (
+        {selectedNodes.length > 0 && (
           <button 
             className="utxo-filter-reset" 
-            onClick={() => {
-              setFilterAddress('');
-              setFilterNodeId('');
-            }}
+            onClick={() => setSelectedNodes([])}
           >
             Reset Filters
           </button>
@@ -209,8 +234,8 @@ const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet }) => {
           ))
         ) : (
           <div className="utxo-empty">
-            {filterAddress 
-              ? `No UTXOs found matching address filter: ${filterAddress}` 
+            {selectedNodes.length > 0 
+              ? 'No UTXOs found for the selected nodes' 
               : 'No UTXOs available'}
           </div>
         )}
