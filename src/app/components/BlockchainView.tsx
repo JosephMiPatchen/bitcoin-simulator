@@ -33,16 +33,10 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
     return [...sortedBlocks].sort((a, b) => a.header.height - b.header.height);
   };
   
-  // Calculate if a block is the last in a row (for arrow display)
-  const isLastInRow = (index: number, totalBlocks: number) => {
-    // No arrows for the last block
-    if (index === totalBlocks - 1) return true;
-    
-    // Estimate how many blocks fit in a row (this is an approximation)
-    const blocksPerRow = Math.floor(window.innerWidth / 150);
-    
-    // If it's the last block in a row, don't show an arrow
-    return (index + 1) % blocksPerRow === 0;
+  // Determine if a block is the last one in the chain (for arrow display)
+  const isLastBlock = (index: number, totalBlocks: number) => {
+    // Only the very last block should have no outgoing arrow
+    return index === totalBlocks - 1;
   };
   
   const sortedBlocksForDisplay = getBlocksForDisplay();
@@ -52,7 +46,7 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
       <div className="blockchain-row">
         {sortedBlocksForDisplay.map((block, index) => {
             const { hash, isValid, isGenesis } = validateBlockHash(block);
-            const isLast = isLastInRow(index, sortedBlocksForDisplay.length);
+            const isLast = isLastBlock(index, sortedBlocksForDisplay.length);
             
             return (
               <div 

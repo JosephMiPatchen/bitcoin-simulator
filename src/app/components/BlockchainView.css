@@ -46,7 +46,7 @@
 }
 
 /* Block arrows */
-.block-item:not(:last-child):not(.last-in-row):after {
+.block-item:not(.last-in-row):after {
   content: "→";
   position: absolute;
   right: -25px;
