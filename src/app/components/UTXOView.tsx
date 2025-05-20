@@ -181,28 +181,30 @@ const UTXOView: React.FC<UTXOViewProps> = ({ utxoSet, allNodeIds = [], nodeId })
       <div className="utxo-filters">
         <div className="utxo-filter utxo-filter-full">
           <label className="utxo-filter-label">Filter by Node IDs</label>
-          <Select
-            isMulti
-            name="nodeIds"
-            options={nodeOptions}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            placeholder="Select node IDs to filter..."
-            value={selectedNodes}
-            onChange={(selected) => setSelectedNodes(selected as NodeOption[])}
-            isClearable={true}
-            isSearchable={true}
-          />
+          <div className="filter-row">
+            <Select
+              isMulti
+              name="nodeIds"
+              options={nodeOptions}
+              className="react-select-container"
+              classNamePrefix="react-select"
+              placeholder="Select node IDs to filter..."
+              value={selectedNodes}
+              onChange={(selected) => setSelectedNodes(selected as NodeOption[])}
+              isClearable={true}
+              isSearchable={true}
+            />
+            
+            {selectedNodes.length > 0 && (
+              <button 
+                className="utxo-filter-reset" 
+                onClick={() => setSelectedNodes([])}
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
         </div>
-        
-        {selectedNodes.length > 0 && (
-          <button 
-            className="utxo-filter-reset" 
-            onClick={() => setSelectedNodes([])}
-          >
-            Reset Filters
-          </button>
-        )}
       </div>
 
       <div className="utxo-header">
