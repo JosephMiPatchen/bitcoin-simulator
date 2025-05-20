@@ -27,48 +27,18 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
     return { hash, isValid, isGenesis };
   };
   
-  // Arrange blocks in a grid layout, growing from left to right, then wrapping downwards
-  const arrangeBlocksInGrid = () => {
-    const maxBlocksPerRow = 4; // Maximum blocks per row before wrapping
-    const blocks: Block[] = [];
-    
-    // Flatten all blocks and sort by height
-    sortedBlocks.forEach(block => {
-      blocks.push(block);
-    });
-    
+  // Let all blocks display in a single container and let CSS handle the wrapping
+  const getBlocksForDisplay = () => {
     // Sort blocks by height
-    blocks.sort((a, b) => a.header.height - b.header.height);
-    
-    // Arrange blocks in rows
-    const rows: Block[][] = [];
-    let currentRow: Block[] = [];
-    
-    blocks.forEach(block => {
-      currentRow.push(block);
-      
-      // Start a new row when we reach the maximum blocks per row
-      if (currentRow.length >= maxBlocksPerRow) {
-        rows.push([...currentRow]);
-        currentRow = [];
-      }
-    });
-    
-    // Add the last row if it has any blocks
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-    }
-    
-    return rows;
+    return [...sortedBlocks].sort((a, b) => a.header.height - b.header.height);
   };
   
-  const blockRows = arrangeBlocksInGrid();
+  const sortedBlocksForDisplay = getBlocksForDisplay();
   
   return (
     <div className="blockchain-container">
-      {blockRows.map((row, rowIndex) => (
-        <div key={`row-${rowIndex}`} className="blockchain-row">
-          {row.map((block) => {
+      <div className="blockchain-row">
+        {sortedBlocksForDisplay.map((block) => {
             const { hash, isValid, isGenesis } = validateBlockHash(block);
             
             return (
@@ -92,7 +62,6 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
             );
           })}
         </div>
-      ))}
       
       {selectedBlock && (
         <div className="block-modal-overlay" onClick={() => setSelectedBlock(null)}>
