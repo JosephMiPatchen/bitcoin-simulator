@@ -95,8 +95,8 @@ export const validateBlock = async (
   
   // 7. Validate block timestamp is reasonable
   const now = Date.now();
-  const twoHoursInMs = 2 * 60 * 60 * 1000;
-  if (header.timestamp > now + twoHoursInMs || header.timestamp < now - twoHoursInMs) {
+  const fiveHoursInMs = 5 * 60 * 60 * 1000;
+  if (header.timestamp > now + fiveHoursInMs || header.timestamp < now - fiveHoursInMs) {
     console.error(`Block timestamp is unreasonable: ${header.timestamp}`);
     return false;
   }
