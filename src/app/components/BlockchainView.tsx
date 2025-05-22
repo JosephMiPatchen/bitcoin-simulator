@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Block } from '../../types/types';
 import { calculateBlockHeaderHash } from '../../core/validation/blockValidator';
 import { isHashBelowCeiling } from '../../utils/cryptoUtils';
 import { SimulatorConfig } from '../../config/config';
-import TransactionView from './TransactionView';
+import { BiFork } from 'react-icons/bi';
 import { useSimulatorContext } from '../contexts/SimulatorContext';
-import { BiFork } from "react-icons/bi";
+import TransactionView from './TransactionView';
 import './BlockchainView.css';
 
 interface BlockchainViewProps {
@@ -16,11 +16,60 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
   const { forkStartHeight } = useSimulatorContext();
   
+  // Keep track of previously forked blocks to detect transitions
+  const [resolvedBlocks, setResolvedBlocks] = useState<Set<string>>(new Set());
+  const prevForkHeightRef = useRef<number | null>(forkStartHeight);
+  
   // Determine if a block is part of a fork
   const isForkedBlock = (block: Block): boolean => {
     if (forkStartHeight === null) return false;
     return block.header.height >= forkStartHeight;
   };
+  
+  // Track blocks that have transitioned from forked to resolved
+  useEffect(() => {
+    // If fork height changed or was resolved
+    if (prevForkHeightRef.current !== forkStartHeight) {
+      const newResolvedBlocks = new Set<string>();
+      
+      // If previous fork existed but now resolved or changed
+      if (prevForkHeightRef.current !== null) {
+        blocks.forEach(block => {
+          // If this block was previously forked but is no longer forked
+          const blockHash = calculateBlockHeaderHash(block.header);
+          const wasForked = block.header.height >= prevForkHeightRef.current!;
+          const isNowForked = isForkedBlock(block);
+          
+          if (wasForked && !isNowForked) {
+            newResolvedBlocks.add(blockHash);
+          }
+        });
+      }
+      
+      // Merge with existing resolved blocks instead of replacing
+      setResolvedBlocks(prevBlocks => {
+        const mergedBlocks = new Set(prevBlocks);
+        newResolvedBlocks.forEach(hash => mergedBlocks.add(hash));
+        return mergedBlocks;
+      });
+      
+      prevForkHeightRef.current = forkStartHeight;
+      
+      // Clear the resolved blocks after animation duration
+      // Use a separate timeout for each block to ensure all animations complete
+      if (newResolvedBlocks.size > 0) {
+        const timer = setTimeout(() => {
+          setResolvedBlocks(prevBlocks => {
+            const updatedBlocks = new Set(prevBlocks);
+            newResolvedBlocks.forEach(hash => updatedBlocks.delete(hash));
+            return updatedBlocks;
+          });
+        }, 2000); // Slightly longer than animation duration to ensure completion
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [forkStartHeight, blocks]);
   
   // Get the last 6 characters of a hash for display
   const shortenHash = (hash: string) => hash.substring(hash.length - 6);
@@ -58,22 +107,23 @@ const BlockchainView: React.FC<BlockchainViewProps> = ({ blocks }) => {
             const isLast = isLastBlock(index, sortedBlocksForDisplay.length);
             
             return (
-              <div 
-                key={hash} 
-                className={`block-item ${selectedBlock === block ? 'selected' : ''} ${isGenesis ? 'genesis-block' : ''} ${isLast ? 'last-in-row' : ''} ${isForkedBlock(block) ? 'forked-block' : ''}`}
-                onClick={() => setSelectedBlock(block === selectedBlock ? null : block)}
-              >
-                <div className="block-height">{block.header.height}</div>
-                <div className="block-hash">{shortenHash(hash)}</div>
-                <div className="block-validation">
-                  {isGenesis ? 
-                    <span className="genesis-text">GENESIS</span> :
-                    isValid ? 
-                      <span className="valid-block">✓</span> : 
-                      <span className="invalid-block">✗</span>
-                  }
+              <div className="block-wrapper" key={hash}>
+                <div 
+                  className={`block-item ${selectedBlock === block ? 'selected' : ''} ${isGenesis ? 'genesis-block' : ''} ${isLast ? 'last-in-row' : ''} ${isForkedBlock(block) ? 'forked-block' : ''} ${resolvedBlocks.has(hash) ? 'resolved-block' : ''}`}
+                  onClick={() => setSelectedBlock(block === selectedBlock ? null : block)}
+                >
+                  <div className="block-height">{block.header.height}</div>
+                  <div className="block-hash">{shortenHash(hash)}</div>
+                  <div className="block-validation">
+                    {isGenesis ? 
+                      <span className="genesis-text">GENESIS</span> :
+                      isValid ? 
+                        <span className="valid-block">✓</span> : 
+                        <span className="invalid-block">✗</span>
+                    }
+                  </div>
+                  <div className="block-tx-count">{block.transactions.length} tx</div>
                 </div>
-                <div className="block-tx-count">{block.transactions.length} tx</div>
                 {isForkedBlock(block) && <div className="fork-icon"><BiFork /></div>}
               </div>
             );

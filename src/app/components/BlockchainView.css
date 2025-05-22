@@ -35,7 +35,6 @@
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   position: relative;
-  margin-bottom: 10px;
 }
 
 .block-item:hover {
@@ -65,7 +64,14 @@
 .forked-block {
   border-color: #444;
   border-width: 2px;
-  transition: border-color 0.3s ease-in-out, border-width 0.3s ease-in-out;
+  opacity: 0.75;
+  transition: border-color 0.3s ease-in-out, border-width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* Block wrapper styling */
+.block-wrapper {
+  position: relative;
+  margin-bottom: 10px;
 }
 
 /* Fork icon styling */
@@ -77,6 +83,7 @@
   font-size: 16px;
   opacity: 0;
   animation: fadeIn 0.5s ease-in-out forwards;
+  z-index: 5;
 }
 
 /* Animation for blocks changing state */
@@ -88,6 +95,20 @@
 @keyframes fadeOut {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+
+@keyframes resolvedGlow {
+  0% { box-shadow: 0 0 5px rgba(247, 147, 26, 0); }
+  50% { box-shadow: 0 0 15px rgba(247, 147, 26, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(247, 147, 26, 0); }
+}
+
+/* Apply the glow animation when a block transitions from forked to normal */
+.resolved-block {
+  animation: resolvedGlow 2s ease-in-out;
+  animation-fill-mode: both;
+  z-index: 1;
+  position: relative;
 }
 
 .block-item {
