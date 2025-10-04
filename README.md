@@ -1,7 +1,10 @@
+# Bitcoin Full Node Simulator
+
+A simplified Bitcoin full node implementation built from scratch in TypeScript, featuring Nakamoto consensus and P2PKH transaction security using SHA-256 hashing and ECDSA signatures with the secp256k1 curve. The project includes an interactive React simulator that visualizes 4 nodes operating in a mesh network with real-time mining, blockchain synchronization, and UTXO tracking for each node. This educational implementation demonstrates core blockchain concepts including distributed consensus, cryptographic security, transaction validation, and peer-to-peer networking.
 
 ![demo](./demo.jpg)
 
-# Bitcoin Simulator Requirements Doc P0 (Enhanced)
+# Requirements P0
 
 ## Overview 
 The goal of this document is to lay out the requirements for a bitcoin simulator. The purpose of this simulator is to implement Nakamoto consensus in its simplest form. After looking at what's available on the internet, there is no simple implementation that a developer could read in one sitting to understand the core of what Bitcoin's consensus algorithm does, and why it works. 
