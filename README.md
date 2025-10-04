@@ -1,3 +1,6 @@
+
+![demo](./demo.jpg)
+
 # Bitcoin Simulator Requirements Doc P0 (Enhanced)
 
 ## Overview 
